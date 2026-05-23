@@ -4,7 +4,7 @@ type SettingsBarProps = {
 
 export function SettingsBar({ title = "Café Pomodoro" }: SettingsBarProps) {
   return (
-    <div className="cafe-card flex items-center justify-between px-6 py-3">
+    <div className="cafe-card flex w-9.5/10 items-center justify-between px-6 py-3">
       <h1 className="font-display text-xl font-semibold text-cafe-text">
         {title}
       </h1>

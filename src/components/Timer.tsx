@@ -15,7 +15,12 @@ const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
 
 export function Timer({ minutes, seconds, mode, progress }: TimerProps) {
   const offset = CIRCUMFERENCE * (1 - progress);
-  const modeLabel = mode === "focus" ? "Focus Time" : "Break Time";
+  const modeLabels: Record<typeof mode, string> = {
+    focus: "Focus Time",
+    break: "Short Break",
+    longBreak: "Long Break",
+  };
+  const modeLabel = modeLabels[mode];
   const timeDisplay = `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
 
   return (
@@ -52,7 +57,11 @@ export function Timer({ minutes, seconds, mode, progress }: TimerProps) {
             strokeDasharray={CIRCUMFERENCE}
             strokeDashoffset={offset}
             className={
-              mode === "focus" ? "text-cafe-matcha" : "text-cafe-pink-dark"
+              mode === "focus"
+                ? "text-cafe-matcha"
+                : mode === "longBreak"
+                  ? "text-cafe-wood"
+                  : "text-cafe-pink-dark"
             }
             style={{ transition: "stroke-dashoffset 0.5s ease" }}
           />

@@ -10,7 +10,7 @@ export function CafeScene({ scene, children }: CafeSceneProps) {
     <div
       className={`relative min-h-screen w-full ${scene.background.className} border-scallop-top border-scallop-bottom`}
     >
-      <div className="relative z-10 mx-auto flex min-h-screen max-w-6xl flex-col p-6 pt-10">
+      <div className="relative z-10 mx-auto flex min-h-screen max-w-6xl flex-col p-6 pt-16">
         {children}
       </div>
     </div>
