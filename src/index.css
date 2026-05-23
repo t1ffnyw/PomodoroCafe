@@ -1,0 +1,89 @@
+@import "tailwindcss";
+
+@theme {
+  /* Café palette */
+  --color-cafe-cream: #fdf6ee;
+  --color-cafe-pink: #f5d5e0;
+  --color-cafe-pink-light: #fae8ef;
+  --color-cafe-pink-dark: #e8b4c8;
+  --color-cafe-sage: #d4dfc7;
+  --color-cafe-sage-light: #e8eede;
+  --color-cafe-sage-dark: #b5c4a3;
+  --color-cafe-matcha: #8ba878;
+  --color-cafe-wood: #c4956a;
+  --color-cafe-wood-dark: #8b6b4a;
+  --color-cafe-text: #5a4e44;
+  --color-cafe-text-light: #8a7e74;
+
+  /* Typography */
+  --font-body: "Quicksand", sans-serif;
+  --font-display: "Playfair Display", serif;
+}
+
+/* Gingham background pattern */
+.bg-gingham {
+  background-color: var(--color-cafe-pink-light);
+  background-image:
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 20px,
+      rgba(245, 213, 224, 0.5) 20px,
+      rgba(245, 213, 224, 0.5) 40px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 20px,
+      rgba(245, 213, 224, 0.5) 20px,
+      rgba(245, 213, 224, 0.5) 40px
+    );
+}
+
+/* Scalloped border decoration */
+.border-scallop-top,
+.border-scallop-bottom {
+  position: relative;
+}
+
+.border-scallop-top::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 24px;
+  background: radial-gradient(circle at 12px -6px, transparent 12px, var(--color-cafe-pink) 13px);
+  background-size: 24px 24px;
+}
+
+.border-scallop-bottom::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 24px;
+  background: radial-gradient(circle at 12px 30px, transparent 12px, var(--color-cafe-pink) 13px);
+  background-size: 24px 24px;
+}
+
+/* Card styling */
+.cafe-card {
+  background-color: var(--color-cafe-sage-light);
+  border-radius: 1rem;
+  padding: 1.5rem;
+}
+
+/* Base styles */
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  color: var(--color-cafe-text);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display);
+}
