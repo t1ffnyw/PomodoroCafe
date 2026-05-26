@@ -18,9 +18,9 @@ export function ModeSelector({ mode, onSelect }: ModeSelectorProps) {
         <button
           key={m.id}
           onClick={() => onSelect(m.id)}
-          className={`rounded-lg px-4 py-2 font-body text-sm font-semibold transition-colors ${
+          className={`cafe-button-shadow rounded-lg px-4 py-2 font-body text-sm font-semibold [--cafe-button-shadow-color:var(--color-cafe-wood-dark)] ${
             mode === m.id
-              ? "bg-cafe-wood text-white shadow-sm"
+              ? "bg-cafe-wood text-white"
               : "bg-cafe-cream text-cafe-text hover:bg-cafe-sage-light"
           }`}
         >

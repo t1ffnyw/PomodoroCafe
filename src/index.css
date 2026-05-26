@@ -75,6 +75,25 @@
   padding: 1.5rem;
 }
 
+/* Chunky pressed-button shadow */
+.cafe-button-shadow {
+  box-shadow: 0 4px 0 var(--cafe-button-shadow-color, var(--color-cafe-pink-dark));
+  transition:
+    transform 150ms ease,
+    box-shadow 150ms ease,
+    background-color 150ms ease,
+    color 150ms ease;
+}
+
+.cafe-button-shadow:hover {
+  transform: translateY(-2px);
+}
+
+.cafe-button-shadow:active {
+  box-shadow: 0 2px 0 var(--cafe-button-shadow-color, var(--color-cafe-pink-dark));
+  transform: translateY(2px);
+}
+
 /* Base styles */
 body {
   margin: 0;

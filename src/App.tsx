@@ -7,11 +7,13 @@ import { CycleTracker } from "@/components/CycleTracker";
 import { ModeSelector } from "@/components/ModeSelector";
 import { TodoList } from "@/components/TodoList";
 import { useTimer } from "@/hooks/useTimer";
+import { useTimerConfig } from "@/hooks/useTimerConfig";
 import { useTodos } from "@/hooks/useTodos";
 import { defaultScene } from "@/config/scenes";
 
 export default function App() {
-  const timer = useTimer();
+  const { config: timerConfig, updateConfig } = useTimerConfig();
+  const timer = useTimer(timerConfig);
   const { todos, addTodo, toggleTodo, deleteTodo } = useTodos();
 
   return (
@@ -19,7 +21,10 @@ export default function App() {
       <div className="grid flex-1 grid-cols-[1fr_minmax(240px,280px)] gap-10">
         {/* Left column: settings bar on top, then drink & timer side by side */}
         <div className="flex flex-col gap-6">
-          <SettingsBar />
+          <SettingsBar
+            timerConfig={timerConfig}
+            onConfigChange={updateConfig}
+          />
 
           <div className="flex flex-1 items-center gap-6">
             <DrinkDisplay
