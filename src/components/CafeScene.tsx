@@ -1,3 +1,6 @@
+// CafeScene component to wrap the entire app in a cafe scene
+// with a gingham pattern background and scallop borders
+
 import type { SceneConfig } from "@/types/scene";
 
 type CafeSceneProps = {

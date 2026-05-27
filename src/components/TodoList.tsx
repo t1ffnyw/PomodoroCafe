@@ -1,3 +1,6 @@
+// TodoList component to display the todo list
+// with a form to add a new todo and a list of todos
+
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import type { Todo } from "@/types/todo";
@@ -26,7 +29,7 @@ export function TodoList({ todos, onAdd, onToggle, onDelete }: TodoListProps) {
     <div className="flex h-full flex-col gap-3">
       <div className="flex items-center justify-between">
         <h2 className="font-display text-lg text-cafe-text">To Do List</h2>
-        <span className="text-sm text-cafe-text-light">
+        <span className="text-sm text-muted">
           {remaining} remaining
         </span>
       </div>
@@ -37,11 +40,11 @@ export function TodoList({ todos, onAdd, onToggle, onDelete }: TodoListProps) {
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder="Add a task..."
-          className="flex-1 rounded-lg border-none bg-white/60 px-3 py-2 font-body text-sm text-cafe-text placeholder:text-cafe-text-light/60 focus:outline-none focus:ring-2 focus:ring-cafe-matcha/40"
+          className="input flex-1"
         />
         <button
           type="submit"
-          className="cafe-button-shadow rounded-lg bg-cafe-matcha px-3 py-2 text-sm font-semibold text-white [--cafe-button-shadow-color:var(--color-cafe-sage-dark)] hover:bg-cafe-sage-dark"
+          className="btn btn-sm btn--matcha"
         >
           Add
         </button>
@@ -76,7 +79,7 @@ export function TodoList({ todos, onAdd, onToggle, onDelete }: TodoListProps) {
               </span>
               <button
                 onClick={() => onDelete(todo.id)}
-                className="cafe-button-shadow flex h-6 w-6 items-center justify-center rounded-md bg-cafe-pink text-cafe-text [--cafe-button-shadow-color:var(--color-cafe-pink-dark)] hover:bg-cafe-pink-dark hover:text-white"
+                className="btn btn--pink-contrast flex h-6 w-6 items-center justify-center rounded-md"
               >
                 ×
               </button>

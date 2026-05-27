@@ -1,3 +1,5 @@
+// DrinkDisplay component to display the drink
+
 import { motion } from "framer-motion";
 import type { DrinkConfig, DrinkLayer } from "@/types/scene";
 import { useEffect, useState } from "react";

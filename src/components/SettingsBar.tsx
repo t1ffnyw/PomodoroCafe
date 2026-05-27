@@ -1,3 +1,6 @@
+// SettingsBar component to display the settings bar
+// with a title and a button to open the settings popup
+
 import { useState } from "react";
 import { AnimatePresence } from "framer-motion";
 import type { TimerConfig } from "@/types/timer";
@@ -10,7 +13,7 @@ type SettingsBarProps = {
 };
 
 export function SettingsBar({
-  title = "Café Pomodoro",
+  title = "Pomodoro Cafe",
   timerConfig,
   onConfigChange,
 }: SettingsBarProps) {
@@ -23,7 +26,7 @@ export function SettingsBar({
       </h1>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="cafe-button-shadow flex h-10 w-10 items-center justify-center rounded-xl bg-cafe-pink text-white [--cafe-button-shadow-color:var(--color-cafe-pink-dark)] hover:bg-cafe-pink-dark"
+        className="btn btn-icon btn--pink text-white hover:text-white"
         aria-label="Settings"
       >
         <svg

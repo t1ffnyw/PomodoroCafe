@@ -1,3 +1,6 @@
+// SettingsPopup component to edit timer settings 
+// focus, short break, long break, cycles before long break
+
 import { useState } from "react";
 import { motion } from "framer-motion";
 import type { TimerConfig } from "@/types/timer";
@@ -12,13 +15,14 @@ export function SettingsPopup({ config, onSave, onClose }: SettingsPopupProps) {
   const [focus, setFocus] = useState(config.focusMinutes);
   const [shortBreak, setShortBreak] = useState(config.breakMinutes);
   const [longBreak, setLongBreak] = useState(config.longBreakMinutes);
+  const [cycles, setCycles] = useState(config.cyclesBeforeLongBreak);
 
   function handleSave() {
     onSave({
       focusMinutes: Math.max(1, focus),
       breakMinutes: Math.max(1, shortBreak),
       longBreakMinutes: Math.max(1, longBreak),
-      cyclesBeforeLongBreak: config.cyclesBeforeLongBreak,
+      cyclesBeforeLongBreak: Math.max(1, cycles),
     });
     onClose();
   }
@@ -28,7 +32,7 @@ export function SettingsPopup({ config, onSave, onClose }: SettingsPopupProps) {
       initial={{ opacity: 0, y: -8 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -8 }}
-      className="absolute right-0 top-full z-50 mt-2 w-64 rounded-xl bg-white/95 p-5 shadow-lg backdrop-blur-sm"
+      className="popup"
     >
       <h3 className="mb-4 font-display text-base font-semibold text-cafe-text">
         Timer Settings
@@ -44,9 +48,9 @@ export function SettingsPopup({ config, onSave, onClose }: SettingsPopupProps) {
               max={120}
               value={focus}
               onChange={(e) => setFocus(Number(e.target.value))}
-              className="w-16 rounded-lg bg-cafe-sage-light px-2 py-1 text-center font-body text-sm text-cafe-text focus:outline-none focus:ring-2 focus:ring-cafe-matcha/40"
+              className="input-number"
             />
-            <span className="text-xs text-cafe-text-light">min</span>
+            <span className="text-muted-xs">min</span>
           </div>
         </label>
 
@@ -59,9 +63,9 @@ export function SettingsPopup({ config, onSave, onClose }: SettingsPopupProps) {
               max={60}
               value={shortBreak}
               onChange={(e) => setShortBreak(Number(e.target.value))}
-              className="w-16 rounded-lg bg-cafe-sage-light px-2 py-1 text-center font-body text-sm text-cafe-text focus:outline-none focus:ring-2 focus:ring-cafe-matcha/40"
+              className="input-number"
             />
-            <span className="text-xs text-cafe-text-light">min</span>
+            <span className="text-muted-xs">min</span>
           </div>
         </label>
 
@@ -74,9 +78,24 @@ export function SettingsPopup({ config, onSave, onClose }: SettingsPopupProps) {
               max={60}
               value={longBreak}
               onChange={(e) => setLongBreak(Number(e.target.value))}
-              className="w-16 rounded-lg bg-cafe-sage-light px-2 py-1 text-center font-body text-sm text-cafe-text focus:outline-none focus:ring-2 focus:ring-cafe-matcha/40"
+              className="input-number"
             />
-            <span className="text-xs text-cafe-text-light">min</span>
+            <span className="text-muted-xs">min</span>
+          </div>
+        </label>
+
+        <label className="flex items-center justify-between">
+          <span className="font-body text-sm text-cafe-text">Cycles</span>
+          <div className="flex items-center gap-1">
+            <input
+              type="number"
+              min={1}
+              max={8}
+              value={cycles}
+              onChange={(e) => setCycles(Number(e.target.value))}
+              className="input-number"
+            />
+            <span className="text-muted-xs">set</span>
           </div>
         </label>
       </div>
@@ -84,13 +103,13 @@ export function SettingsPopup({ config, onSave, onClose }: SettingsPopupProps) {
       <div className="mt-4 flex gap-2">
         <button
           onClick={handleSave}
-          className="cafe-button-shadow flex-1 rounded-lg bg-cafe-matcha px-3 py-1.5 font-body text-sm font-semibold text-white [--cafe-button-shadow-color:var(--color-cafe-sage-dark)] hover:bg-cafe-sage-dark"
+          className="btn btn-sm btn--matcha flex-1"
         >
           Save
         </button>
         <button
           onClick={onClose}
-          className="cafe-button-shadow flex-1 rounded-lg bg-cafe-pink px-3 py-1.5 font-body text-sm font-semibold text-cafe-text [--cafe-button-shadow-color:var(--color-cafe-pink-dark)] hover:bg-cafe-pink-dark hover:text-white"
+          className="btn btn-sm btn--pink-contrast flex-1"
         >
           Cancel
         </button>

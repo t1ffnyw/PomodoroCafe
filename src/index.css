@@ -68,6 +68,19 @@
   background-size: 24px 24px;
 }
 
+/* Base styles */
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  color: var(--color-cafe-text);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display);
+}
+
 /* Card styling */
 .cafe-card {
   background-color: var(--color-cafe-sage-light);
@@ -75,8 +88,92 @@
   padding: 1.5rem;
 }
 
+
+/* ---------- Reusable UI classes (Phase 1) ---------- */
+
+/* Button base */
+.btn {
+  @apply cafe-button-shadow inline-flex items-center justify-center font-body font-semibold;
+}
+
+.btn-pill {
+  @apply rounded-full px-6 py-2;
+}
+
+.btn-tab {
+  @apply rounded-lg px-4 py-2 text-sm;
+}
+
+.btn-sm {
+  @apply rounded-lg px-3 py-1.5 text-sm;
+}
+
+.btn-icon {
+  @apply h-10 w-10 rounded-xl;
+}
+
+/* Button color variants */
+.btn--matcha {
+  @apply bg-cafe-matcha text-white hover:bg-cafe-sage-dark;
+  --cafe-button-shadow-color: var(--color-cafe-sage-dark);
+}
+
+.btn--sage {
+  @apply bg-cafe-sage text-cafe-text hover:bg-cafe-sage-dark;
+  --cafe-button-shadow-color: var(--color-cafe-sage-dark);
+}
+
+.btn--pink {
+  @apply bg-cafe-pink text-cafe-text hover:bg-cafe-pink-dark;
+  --cafe-button-shadow-color: var(--color-cafe-pink-dark);
+}
+
+.btn--wood {
+  @apply bg-cafe-wood text-white;
+  --cafe-button-shadow-color: var(--color-cafe-wood-dark);
+}
+
+.btn--cream {
+  @apply bg-cafe-cream text-cafe-text hover:bg-cafe-sage-light;
+  --cafe-button-shadow-color: var(--color-cafe-wood-dark);
+}
+
+/* Optional if you want white text on pink hover buttons like Cancel/Delete */
+.btn--pink-contrast {
+  @apply bg-cafe-pink text-cafe-text hover:bg-cafe-pink-dark hover:text-white;
+  --cafe-button-shadow-color: var(--color-cafe-pink-dark);
+}
+
+/* Inputs */
+.input {
+  @apply rounded-lg border-none bg-white/60 px-3 py-2 font-body text-sm text-cafe-text placeholder:text-cafe-text-light/60 focus:outline-none focus:ring-2 focus:ring-cafe-matcha/40;
+}
+
+.input-number {
+  @apply w-16 rounded-lg bg-cafe-sage-light px-2 py-1 text-center font-body text-sm text-cafe-text focus:outline-none focus:ring-2 focus:ring-cafe-matcha/40;
+}
+
+/* Small surfaces */
+.chip {
+  @apply rounded-xl bg-white/60 px-5 py-2.5;
+}
+
+.popup {
+  @apply absolute right-0 top-full z-50 mt-2 w-64 rounded-xl bg-white/95 p-5 shadow-lg backdrop-blur-sm;
+}
+
+/* Typography helpers */
+.text-muted {
+  @apply text-cafe-text-light;
+}
+
+.text-muted-xs {
+  @apply text-xs text-cafe-text-light;
+}
+
+
 /* Chunky pressed-button shadow */
-.cafe-button-shadow {
+@utility cafe-button-shadow {
   box-shadow: 0 4px 0 var(--cafe-button-shadow-color, var(--color-cafe-pink-dark));
   transition:
     transform 150ms ease,
@@ -94,15 +191,3 @@
   transform: translateY(2px);
 }
 
-/* Base styles */
-body {
-  margin: 0;
-  font-family: var(--font-body);
-  color: var(--color-cafe-text);
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-display);
-}

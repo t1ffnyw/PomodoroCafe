@@ -40,10 +40,18 @@ export function useTimer(config: TimerConfig = DEFAULT_TIMER_CONFIG) {
 
   const switchMode = useCallback(
     (newMode: TimerMode) => {
+      const cfg = configRef.current;
+
       clearTimer();
       setState("idle");
+
+      if (newMode === "focus" && cycleRef.current >= cfg.cyclesBeforeLongBreak) {
+        cycleRef.current = 0;
+        setCycle(0);
+      }
+
       setMode(newMode);
-      setRemainingMs(getMsForMode(newMode, configRef.current));
+      setRemainingMs(getMsForMode(newMode, cfg));
     },
     [clearTimer]
   );
@@ -53,31 +61,33 @@ export function useTimer(config: TimerConfig = DEFAULT_TIMER_CONFIG) {
     setState("idle");
     const cfg = configRef.current;
 
-    setMode((prevMode) => {
-      if (prevMode === "focus") {
-        const nextCycle = cycleRef.current + 1;
-        cycleRef.current = nextCycle;
-        setCycle(nextCycle);
+    if (mode === "focus") {
+      const nextCycle = cycleRef.current + 1;
+      cycleRef.current = nextCycle;
+      setCycle(nextCycle);
 
-        if (nextCycle >= cfg.cyclesBeforeLongBreak) {
-          setRemainingMs(getMsForMode("longBreak", cfg));
-          return "longBreak";
-        }
-        setRemainingMs(getMsForMode("break", cfg));
-        return "break";
+      if (nextCycle >= cfg.cyclesBeforeLongBreak) {
+        setMode("longBreak");
+        setRemainingMs(getMsForMode("longBreak", cfg));
+        return;
       }
 
-      if (prevMode === "longBreak") {
-        cycleRef.current = 0;
-        setCycle(0);
-      }
+      setMode("break");
+      setRemainingMs(getMsForMode("break", cfg));
+      return;
+    }
+
+    if (mode === "longBreak") {
+      cycleRef.current = 0;
+      setCycle(0);
+    }
+
+    setMode("focus");
       setRemainingMs(getMsForMode("focus", cfg));
-      return "focus";
-    });
-  }, [clearTimer]);
+  }, [mode, clearTimer]);
 
   const start = useCallback(() => {
-    if (state === "running") return;
+    if (state === "running" || intervalRef.current) return;
     setState("running");
 
     const startTime = Date.now();

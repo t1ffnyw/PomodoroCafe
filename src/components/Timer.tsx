@@ -1,3 +1,6 @@
+// Timer component to display the timer
+// with a countdown ring and a time display
+
 import type { TimerMode, TimerState } from "@/types/timer";
 
 type TimerProps = {
@@ -9,7 +12,7 @@ type TimerProps = {
 };
 
 const RING_SIZE = 200;
-const STROKE_WIDTH = 8;
+const STROKE_WIDTH = 16;
 const RADIUS = (RING_SIZE - STROKE_WIDTH) / 2;
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
 

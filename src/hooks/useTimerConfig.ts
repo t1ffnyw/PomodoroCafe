@@ -7,7 +7,9 @@ const STORAGE_KEY = "cafe-pomodoro-timer-config";
 function loadConfig(): TimerConfig {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? (JSON.parse(raw) as TimerConfig) : DEFAULT_TIMER_CONFIG;
+    return raw
+      ? { ...DEFAULT_TIMER_CONFIG, ...(JSON.parse(raw) as Partial<TimerConfig>) }
+      : DEFAULT_TIMER_CONFIG;
   } catch {
     return DEFAULT_TIMER_CONFIG;
   }

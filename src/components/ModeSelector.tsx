@@ -1,3 +1,6 @@
+// ModeSelector component to select the mode of the timer
+// pomodoro, short break, long break
+
 import type { TimerMode } from "@/types/timer";
 
 type ModeSelectorProps = {
@@ -18,11 +21,7 @@ export function ModeSelector({ mode, onSelect }: ModeSelectorProps) {
         <button
           key={m.id}
           onClick={() => onSelect(m.id)}
-          className={`cafe-button-shadow rounded-lg px-4 py-2 font-body text-sm font-semibold [--cafe-button-shadow-color:var(--color-cafe-wood-dark)] ${
-            mode === m.id
-              ? "bg-cafe-wood text-white"
-              : "bg-cafe-cream text-cafe-text hover:bg-cafe-sage-light"
-          }`}
+          className={`btn btn-tab ${mode === m.id ? "btn--wood" : "btn--cream"}`}
         >
           {m.label}
         </button>
