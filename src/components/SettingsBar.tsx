@@ -1,9 +1,13 @@
+// SettingsBar component to display the settings bar
+// with a title and a button to open the settings popup
+
 import { useState } from "react";
 import { AnimatePresence } from "framer-motion";
 import type { TimerConfig } from "@/types/timer";
 import type { ThemeId } from "@/types/theme";
 import { SettingsPopup } from "./SettingsPopup";
 import { ThemePicker } from "./ThemePicker";
+import { FocusModeButton } from "./FocusModeButton";
 
 type SettingsBarProps = {
   title?: string;
@@ -11,6 +15,8 @@ type SettingsBarProps = {
   onConfigChange: (config: TimerConfig) => void;
   themeId: ThemeId;
   onThemeChange: (id: ThemeId) => void;
+  showFocusModeButton?: boolean;
+  onEnterFocusMode?: () => void;
 };
 
 export function SettingsBar({
@@ -19,6 +25,8 @@ export function SettingsBar({
   onConfigChange,
   themeId,
   onThemeChange,
+  showFocusModeButton = false,
+  onEnterFocusMode,
 }: SettingsBarProps) {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isThemeOpen, setIsThemeOpen] = useState(false);
@@ -74,6 +82,9 @@ export function SettingsBar({
             <circle cx="12" cy="12" r="3" />
           </svg>
         </button>
+        {showFocusModeButton && onEnterFocusMode && (
+          <FocusModeButton onClick={onEnterFocusMode} />
+        )}
 
         <AnimatePresence>
           {isThemeOpen && (

@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { CafeScene } from "@/components/CafeScene";
 import { SettingsBar } from "@/components/SettingsBar";
 import { DrinkDisplay } from "@/components/DrinkDisplay";
@@ -6,6 +7,7 @@ import { Controls } from "@/components/Controls";
 import { CycleTracker } from "@/components/CycleTracker";
 import { ModeSelector } from "@/components/ModeSelector";
 import { TodoList } from "@/components/TodoList";
+import { FocusModeOverlay } from "@/components/FocusModeOverlay";
 import { useTimer } from "@/hooks/useTimer";
 import { useTimerConfig } from "@/hooks/useTimerConfig";
 import { useTheme } from "@/hooks/useTheme";
@@ -16,9 +18,30 @@ export default function App() {
   const { themeId, theme, setTheme } = useTheme();
   const timer = useTimer(timerConfig);
   const { todos, addTodo, toggleTodo, deleteTodo } = useTodos();
+  const [isFocusMode, setIsFocusMode] = useState(false);
+
+  useEffect(() => {
+    if (timer.mode !== "focus") {
+      setIsFocusMode(false);
+    }
+  }, [timer.mode]);
 
   return (
     <CafeScene scene={theme.scene} themeId={themeId}>
+      {isFocusMode && (
+        <FocusModeOverlay
+          minutes={timer.minutes}
+          seconds={timer.seconds}
+          mode={timer.mode}
+          state={timer.state}
+          progress={timer.progress}
+          onStart={timer.start}
+          onPause={timer.pause}
+          onReset={timer.reset}
+          onClose={() => setIsFocusMode(false)}
+        />
+      )}
+
       <div className="grid flex-1 grid-cols-[1fr_minmax(240px,280px)] gap-10">
         {/* Left column: settings bar on top, then drink & timer side by side */}
         <div className="flex flex-col gap-6">
@@ -27,6 +50,8 @@ export default function App() {
             onConfigChange={updateConfig}
             themeId={themeId}
             onThemeChange={setTheme}
+            showFocusModeButton={timer.mode === "focus"}
+            onEnterFocusMode={() => setIsFocusMode(true)}
           />
 
           <div className="flex flex-1 items-center gap-6">
@@ -62,7 +87,7 @@ export default function App() {
         </div>
 
         {/* Right column: todo list spanning full height */}
-        <div className="cafe-card min-h-[200px] max-h-[575px]">
+        <div className="cafe-card min-h-[200px] max-h-[588px]">
           <TodoList
             todos={todos}
             onAdd={addTodo}

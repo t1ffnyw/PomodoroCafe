@@ -9,15 +9,27 @@ type TimerProps = {
   mode: TimerMode;
   state: TimerState;
   progress: number;
+  showLabel?: boolean;
+  size?: "default" | "large";
 };
 
-const RING_SIZE = 200;
-const STROKE_WIDTH = 16;
-const RADIUS = (RING_SIZE - STROKE_WIDTH) / 2;
-const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
+const TIMER_SIZES = {
+  default: { ring: 200, stroke: 16, timeClass: "text-4xl" },
+  large: { ring: 320, stroke: 22, timeClass: "text-6xl" },
+} as const;
 
-export function Timer({ minutes, seconds, mode, progress }: TimerProps) {
-  const offset = CIRCUMFERENCE * (1 - progress);
+export function Timer({
+  minutes,
+  seconds,
+  mode,
+  progress,
+  showLabel = true,
+  size = "default",
+}: TimerProps) {
+  const { ring: ringSize, stroke: strokeWidth, timeClass } = TIMER_SIZES[size];
+  const radius = (ringSize - strokeWidth) / 2;
+  const circumference = 2 * Math.PI * radius;
+  const offset = circumference * (1 - progress);
   const modeLabels: Record<typeof mode, string> = {
     focus: "Focus Time",
     break: "Short Break",
@@ -28,36 +40,38 @@ export function Timer({ minutes, seconds, mode, progress }: TimerProps) {
 
   return (
     <div className="flex flex-col items-center gap-4">
-      <h2 className="font-display text-xl text-cafe-text-light tracking-wide">
-        {modeLabel}
-      </h2>
+      {showLabel && (
+        <h2 className="font-display text-xl text-cafe-text-light tracking-wide">
+          {modeLabel}
+        </h2>
+      )}
 
-      <div className="relative" style={{ width: RING_SIZE, height: RING_SIZE }}>
+      <div className="relative" style={{ width: ringSize, height: ringSize }}>
         <svg
-          width={RING_SIZE}
-          height={RING_SIZE}
+          width={ringSize}
+          height={ringSize}
           className="rotate-[-90deg]"
         >
           {/* Background ring */}
           <circle
-            cx={RING_SIZE / 2}
-            cy={RING_SIZE / 2}
-            r={RADIUS}
+            cx={ringSize / 2}
+            cy={ringSize / 2}
+            r={radius}
             fill="none"
             stroke="currentColor"
-            strokeWidth={STROKE_WIDTH}
+            strokeWidth={strokeWidth}
             className="text-cafe-sage/30"
           />
           {/* Progress ring */}
           <circle
-            cx={RING_SIZE / 2}
-            cy={RING_SIZE / 2}
-            r={RADIUS}
+            cx={ringSize / 2}
+            cy={ringSize / 2}
+            r={radius}
             fill="none"
             stroke="currentColor"
-            strokeWidth={STROKE_WIDTH}
+            strokeWidth={strokeWidth}
             strokeLinecap="round"
-            strokeDasharray={CIRCUMFERENCE}
+            strokeDasharray={circumference}
             strokeDashoffset={offset}
             className={
               mode === "focus"
@@ -71,7 +85,9 @@ export function Timer({ minutes, seconds, mode, progress }: TimerProps) {
         </svg>
 
         <div className="absolute inset-0 flex items-center justify-center">
-          <span className="font-body text-4xl font-bold text-cafe-text tabular-nums">
+          <span
+            className={`font-body font-bold text-cafe-text tabular-nums ${timeClass}`}
+          >
             {timeDisplay}
           </span>
         </div>
