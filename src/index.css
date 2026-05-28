@@ -142,6 +142,14 @@ h1, h2, h3, h4, h5, h6 {
   padding: 1.5rem;
 }
 
+/* Hidden scrollbar — scroll still works via wheel / trackpad / touch */
+.cafe-scrollbar {
+  scrollbar-width: none;
+}
+
+.cafe-scrollbar::-webkit-scrollbar {
+  display: none;
+}
 
 /* ---------- Reusable UI classes (Phase 1) ---------- */
 

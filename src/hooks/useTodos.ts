@@ -45,5 +45,11 @@ export function useTodos() {
     setTodos((prev) => prev.filter((t) => t.id !== id));
   }, []);
 
-  return { todos, addTodo, toggleTodo, deleteTodo };
+  const updateTodo = useCallback((id: string, text: string) => {
+    setTodos((prev) =>
+      prev.map((t) => (t.id === id ? { ...t, text } : t))
+    );
+  }, []);
+
+  return { todos, addTodo, toggleTodo, deleteTodo, updateTodo };
 }

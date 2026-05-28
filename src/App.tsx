@@ -17,7 +17,7 @@ export default function App() {
   const { config: timerConfig, updateConfig } = useTimerConfig();
   const { themeId, theme, setTheme } = useTheme();
   const timer = useTimer(timerConfig);
-  const { todos, addTodo, toggleTodo, deleteTodo } = useTodos();
+  const { todos, addTodo, toggleTodo, deleteTodo, updateTodo } = useTodos();
   const [isFocusMode, setIsFocusMode] = useState(false);
 
   useEffect(() => {
@@ -93,6 +93,7 @@ export default function App() {
             onAdd={addTodo}
             onToggle={toggleTodo}
             onDelete={deleteTodo}
+            onUpdate={updateTodo}
           />
         </div>
       </div>
