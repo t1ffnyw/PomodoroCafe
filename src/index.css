@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 @theme {
-  /* Café palette */
+  /* Café palette (matcha defaults) */
   --color-cafe-cream: #fdf6ee;
   --color-cafe-pink: #f5d5e0;
   --color-cafe-pink-light: #fae8ef;
@@ -14,10 +14,45 @@
   --color-cafe-wood-dark: #8b6b4a;
   --color-cafe-text: #5a4e44;
   --color-cafe-text-light: #8a7e74;
+  --color-cafe-gingham-stripe: rgba(245, 213, 224, 0.5);
 
   /* Typography */
   --font-body: "Quicksand", sans-serif;
   --font-display: "Playfair Display", serif;
+}
+
+/* Matcha theme palette (resets vars when nested inside coffee mode) */
+[data-theme="matcha"] {
+  --color-cafe-cream: #fdf6ee;
+  --color-cafe-pink: #f5d5e0;
+  --color-cafe-pink-light: #fae8ef;
+  --color-cafe-pink-dark: #e8b4c8;
+  --color-cafe-sage: #d4dfc7;
+  --color-cafe-sage-light: #e8eede;
+  --color-cafe-sage-dark: #b5c4a3;
+  --color-cafe-matcha: #8ba878;
+  --color-cafe-wood: #c4956a;
+  --color-cafe-wood-dark: #8b6b4a;
+  --color-cafe-text: #5a4e44;
+  --color-cafe-text-light: #8a7e74;
+  --color-cafe-gingham-stripe: rgba(245, 213, 224, 0.5);
+}
+
+/* Coffee theme palette overrides */
+[data-theme="coffee"] {
+  --color-cafe-cream: #faf6f0;
+  --color-cafe-pink: #d4b896;
+  --color-cafe-pink-light: #f0e6d8;
+  --color-cafe-pink-dark: #b8956a;
+  --color-cafe-sage: #c9a882;
+  --color-cafe-sage-light: #e8dcc8;
+  --color-cafe-sage-dark: #a07850;
+  --color-cafe-matcha: #6f4e37;
+  --color-cafe-wood: #8b5a2b;
+  --color-cafe-wood-dark: #5c3d1e;
+  --color-cafe-text: #4a3728;
+  --color-cafe-text-light: #7a6555;
+  --color-cafe-gingham-stripe: rgba(180, 149, 106, 0.45);
 }
 
 /* Gingham background pattern */
@@ -28,15 +63,34 @@
       0deg,
       transparent,
       transparent 20px,
-      rgba(245, 213, 224, 0.5) 20px,
-      rgba(245, 213, 224, 0.5) 40px
+      var(--color-cafe-gingham-stripe) 20px,
+      var(--color-cafe-gingham-stripe) 40px
     ),
     repeating-linear-gradient(
       90deg,
       transparent,
       transparent 20px,
-      rgba(245, 213, 224, 0.5) 20px,
-      rgba(245, 213, 224, 0.5) 40px
+      var(--color-cafe-gingham-stripe) 20px,
+      var(--color-cafe-gingham-stripe) 40px
+    );
+}
+
+.bg-gingham-coffee {
+  background-color: var(--color-cafe-pink-light);
+  background-image:
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 20px,
+      var(--color-cafe-gingham-stripe) 20px,
+      var(--color-cafe-gingham-stripe) 40px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 20px,
+      var(--color-cafe-gingham-stripe) 20px,
+      var(--color-cafe-gingham-stripe) 40px
     );
 }
 

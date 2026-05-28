@@ -7,7 +7,7 @@ export type DrinkLayer = {
   size: { width: number; height: number };
   zIndex: number;
   animation: LayerAnimation;
-  spriteFrames?: number;
+  spriteFrames?: string[];
 };
 
 export type DrinkConfig = {

@@ -28,12 +28,6 @@ const pulseAnimation = {
   },
 };
 
-const matchaFrames = [
-  "/assets/drinks/matcha/matcha-straw-1.png",
-  "/assets/drinks/matcha/matcha-straw-2.png",
-  "/assets/drinks/matcha/matcha-straw-3.png",
-];
-
 function getLayerAnimation(animation: DrinkLayer["animation"]) {
   switch (animation) {
     case "float":
@@ -45,37 +39,65 @@ function getLayerAnimation(animation: DrinkLayer["animation"]) {
   }
 }
 
+function scheduleFrameSequence(
+  frameCount: number,
+  setFrameIndex: (index: number) => void,
+): () => void {
+  const timeouts: number[] = [];
+
+  if (frameCount === 3) {
+    const sequence = [0, 1, 2, 1, 0, 1, 2, 1, 0];
+    sequence.forEach((frame, i) => {
+      timeouts.push(window.setTimeout(() => setFrameIndex(frame), i * 200));
+    });
+  } else if (frameCount === 2) {
+    const sequence = [0, 1, 0, 1, 0, 1, 0];
+    sequence.forEach((frame, i) => {
+      timeouts.push(window.setTimeout(() => setFrameIndex(frame), i * 300));
+    });
+  }
+
+  return () => timeouts.forEach((id) => window.clearTimeout(id));
+}
+
 export function DrinkDisplay({ drink, className = "" }: DrinkDisplayProps) {
   const [frameIndex, setFrameIndex] = useState(0);
 
+  const animatedLayer = drink.layers.find(
+    (layer) => (layer.spriteFrames?.length ?? 0) > 0,
+  );
+  const spriteFrames = animatedLayer?.spriteFrames;
+
   useEffect(() => {
+    if (!spriteFrames?.length) return;
+
+    const frameCount = spriteFrames.length;
+
     function playSequence() {
       setFrameIndex(0);
-
-      window.setTimeout(() => setFrameIndex(1), 200);
-      window.setTimeout(() => setFrameIndex(2), 400);
-      window.setTimeout(() => setFrameIndex(1), 600);
-      window.setTimeout(() => setFrameIndex(0), 800);
-      window.setTimeout(() => setFrameIndex(1), 1000);
-      window.setTimeout(() => setFrameIndex(2), 1200);
-      window.setTimeout(() => setFrameIndex(1), 1400);
-      window.setTimeout(() => setFrameIndex(0), 1600);
+      return scheduleFrameSequence(frameCount, setFrameIndex);
     }
 
-    playSequence();
+    let clearSequence = playSequence();
+    const interval = window.setInterval(() => {
+      clearSequence();
+      clearSequence = playSequence();
+    }, 10000);
 
-    const interval = window.setInterval(playSequence, 10000);
-
-    return () => window.clearInterval(interval);
-  }, []);
+    return () => {
+      clearSequence();
+      window.clearInterval(interval);
+    };
+  }, [drink.id, spriteFrames?.length]);
 
   return (
     <div className={`relative ${className}`}>
       {drink.layers.map((layer) => {
         const animate = getLayerAnimation(layer.animation);
+        const frames = layer.spriteFrames;
         const src =
-          layer.id === "matcha-full"
-            ? (matchaFrames[frameIndex] ?? layer.src)
+          frames?.length
+            ? (frames[frameIndex] ?? layer.src)
             : layer.src;
 
         return (

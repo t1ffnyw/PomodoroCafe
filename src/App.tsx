@@ -8,27 +8,30 @@ import { ModeSelector } from "@/components/ModeSelector";
 import { TodoList } from "@/components/TodoList";
 import { useTimer } from "@/hooks/useTimer";
 import { useTimerConfig } from "@/hooks/useTimerConfig";
+import { useTheme } from "@/hooks/useTheme";
 import { useTodos } from "@/hooks/useTodos";
-import { defaultScene } from "@/config/scenes";
 
 export default function App() {
   const { config: timerConfig, updateConfig } = useTimerConfig();
+  const { themeId, theme, setTheme } = useTheme();
   const timer = useTimer(timerConfig);
   const { todos, addTodo, toggleTodo, deleteTodo } = useTodos();
 
   return (
-    <CafeScene scene={defaultScene}>
+    <CafeScene scene={theme.scene} themeId={themeId}>
       <div className="grid flex-1 grid-cols-[1fr_minmax(240px,280px)] gap-10">
         {/* Left column: settings bar on top, then drink & timer side by side */}
         <div className="flex flex-col gap-6">
           <SettingsBar
             timerConfig={timerConfig}
             onConfigChange={updateConfig}
+            themeId={themeId}
+            onThemeChange={setTheme}
           />
 
           <div className="flex flex-1 items-center gap-6">
             <DrinkDisplay
-              drink={defaultScene.drink}
+              drink={theme.scene.drink}
               className="h-80 w-80"
             />
 
