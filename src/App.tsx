@@ -11,11 +11,13 @@ import { FocusModeOverlay } from "@/components/FocusModeOverlay";
 import { useTimer } from "@/hooks/useTimer";
 import { useTimerConfig } from "@/hooks/useTimerConfig";
 import { useTheme } from "@/hooks/useTheme";
+import { useThemeFavicon } from "@/hooks/useThemeFavicon";
 import { useTodos } from "@/hooks/useTodos";
 
 export default function App() {
   const { config: timerConfig, updateConfig } = useTimerConfig();
   const { themeId, theme, setTheme } = useTheme();
+  useThemeFavicon(theme.cycleIcon);
   const timer = useTimer(timerConfig);
   const { todos, addTodo, toggleTodo, deleteTodo, updateTodo } = useTodos();
   const [isFocusMode, setIsFocusMode] = useState(false);
@@ -77,6 +79,7 @@ export default function App() {
               <CycleTracker
                 current={timer.cycle}
                 total={timer.totalCycles}
+                cycleIcon={theme.cycleIcon}
               />
               <ModeSelector
                 mode={timer.mode}

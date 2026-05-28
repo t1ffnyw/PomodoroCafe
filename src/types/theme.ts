@@ -6,4 +6,5 @@ export type AppTheme = {
   id: ThemeId;
   label: string;
   scene: SceneConfig;
+  cycleIcon: string;
 };

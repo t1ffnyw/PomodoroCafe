@@ -3,9 +3,10 @@
 type CycleTrackerProps = {
   current: number;
   total: number;
+  cycleIcon: string;
 };
 
-export function CycleTracker({ current, total }: CycleTrackerProps) {
+export function CycleTracker({ current, total, cycleIcon }: CycleTrackerProps) {
   const currentCycle = Math.min(current + 1, total);
 
   return (
@@ -15,14 +16,15 @@ export function CycleTracker({ current, total }: CycleTrackerProps) {
       </span>
       <div className="flex gap-1.5">
         {Array.from({ length: total }, (_, i) => (
-          <span
+          <img
             key={i}
-            className={`text-lg transition-opacity ${
+            src={cycleIcon}
+            alt=""
+            className={`h-6 w-6 object-contain pixelated transition-opacity ${
               i < current ? "opacity-100" : "opacity-30"
             }`}
-          >
-            🍵
-          </span>
+            style={{ imageRendering: "pixelated" }}
+          />
         ))}
       </div>
     </div>

@@ -122,6 +122,7 @@ export function TodoList({
   onUpdate,
 }: TodoListProps) {
   const [input, setInput] = useState("");
+  const [showCompleted, setShowCompleted] = useState(false);
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -132,6 +133,10 @@ export function TodoList({
   }
 
   const remaining = todos.filter((t) => !t.completed).length;
+  const completedCount = todos.length - remaining;
+  const visibleTodos = showCompleted
+    ? todos
+    : todos.filter((t) => !t.completed);
 
   return (
     <div className="flex h-full flex-col gap-3">
@@ -158,9 +163,19 @@ export function TodoList({
         </button>
       </form>
 
+      {completedCount > 0 && (
+        <button
+          type="button"
+          onClick={() => setShowCompleted((prev) => !prev)}
+          className="self-start font-body text-sm font-semibold text-cafe-matcha hover:underline"
+        >
+          {showCompleted ? "Hide completed" : "Show completed"}
+        </button>
+      )}
+
       <ul className="cafe-scrollbar flex min-w-0 flex-1 flex-col gap-1.5 overflow-x-hidden overflow-y-auto">
         <AnimatePresence>
-          {todos.map((todo) => (
+          {visibleTodos.map((todo) => (
             <TodoItem
               key={todo.id}
               todo={todo}

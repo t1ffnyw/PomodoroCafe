@@ -6,11 +6,13 @@ export const themes: Record<ThemeId, AppTheme> = {
     id: "matcha",
     label: "Matcha",
     scene: matchaScene,
+    cycleIcon: "/assets/drinks/matcha/mini-matcha.png",
   },
   coffee: {
     id: "coffee",
     label: "Coffee",
     scene: coffeeScene,
+    cycleIcon: "/assets/drinks/coffee/mini-coffee.png",
   },
 };
 
