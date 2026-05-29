@@ -4,25 +4,44 @@
 import { useState } from "react";
 import { AnimatePresence } from "framer-motion";
 import type { TimerConfig } from "@/types/timer";
+import type { AppPreferences } from "@/types/preferences";
 import type { ThemeId } from "@/types/theme";
 import { SettingsPopup } from "./SettingsPopup";
+import { SoundPopup } from "./SoundPopup";
 import { ThemePicker } from "./ThemePicker";
 import { FocusModeButton } from "./FocusModeButton";
 
 type SettingsBarProps = {
   title?: string;
   timerConfig: TimerConfig;
-  onConfigChange: (config: TimerConfig) => void;
+  preferences: AppPreferences;
+  onSaveSettings: (config: TimerConfig, preferences: AppPreferences) => void;
+  onSavePreferences: (preferences: AppPreferences) => void;
   themeId: ThemeId;
   onThemeChange: (id: ThemeId) => void;
   showFocusModeButton?: boolean;
   onEnterFocusMode?: () => void;
 };
 
+function closeOtherPanels(
+  except: "sound" | "theme" | "settings" | null,
+  setters: {
+    setIsSoundOpen: (v: boolean) => void;
+    setIsThemeOpen: (v: boolean) => void;
+    setIsSettingsOpen: (v: boolean) => void;
+  },
+) {
+  setters.setIsSoundOpen(except === "sound");
+  setters.setIsThemeOpen(except === "theme");
+  setters.setIsSettingsOpen(except === "settings");
+}
+
 export function SettingsBar({
   title = "Pomodoro Cafe",
   timerConfig,
-  onConfigChange,
+  preferences,
+  onSaveSettings,
+  onSavePreferences,
   themeId,
   onThemeChange,
   showFocusModeButton = false,
@@ -30,6 +49,13 @@ export function SettingsBar({
 }: SettingsBarProps) {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isThemeOpen, setIsThemeOpen] = useState(false);
+  const [isSoundOpen, setIsSoundOpen] = useState(false);
+
+  const panelSetters = {
+    setIsSoundOpen,
+    setIsThemeOpen,
+    setIsSettingsOpen,
+  };
 
   return (
     <div className="cafe-card relative flex w-9.5/10 items-center justify-between px-6 py-3">
@@ -38,9 +64,34 @@ export function SettingsBar({
       </h1>
       <div className="relative flex items-center gap-2">
         <button
+          type="button"
           onClick={() => {
-            setIsThemeOpen(!isThemeOpen);
-            setIsSettingsOpen(false);
+            const next = !isSoundOpen;
+            closeOtherPanels(next ? "sound" : null, panelSetters);
+          }}
+          className="btn btn-icon btn--pink text-white hover:text-white"
+          aria-label="Sound settings"
+        >
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+            <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
+            <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
+          </svg>
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            const next = !isThemeOpen;
+            closeOtherPanels(next ? "theme" : null, panelSetters);
           }}
           className="btn btn-icon btn--pink text-white hover:text-white"
           aria-label="Change theme"
@@ -61,12 +112,13 @@ export function SettingsBar({
           </svg>
         </button>
         <button
+          type="button"
           onClick={() => {
-            setIsSettingsOpen(!isSettingsOpen);
-            setIsThemeOpen(false);
+            const next = !isSettingsOpen;
+            closeOtherPanels(next ? "settings" : null, panelSetters);
           }}
           className="btn btn-icon btn--pink text-white hover:text-white"
-          aria-label="Settings"
+          aria-label="Timer settings"
         >
           <svg
             width="18"
@@ -87,6 +139,15 @@ export function SettingsBar({
         )}
 
         <AnimatePresence>
+          {isSoundOpen && (
+            <SoundPopup
+              preferences={preferences}
+              onSave={onSavePreferences}
+              onClose={() => setIsSoundOpen(false)}
+            />
+          )}
+        </AnimatePresence>
+        <AnimatePresence>
           {isThemeOpen && (
             <ThemePicker
               themeId={themeId}
@@ -99,7 +160,8 @@ export function SettingsBar({
           {isSettingsOpen && (
             <SettingsPopup
               config={timerConfig}
-              onSave={onConfigChange}
+              preferences={preferences}
+              onSave={onSaveSettings}
               onClose={() => setIsSettingsOpen(false)}
             />
           )}

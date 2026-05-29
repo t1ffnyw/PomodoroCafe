@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { AnimatePresence } from "framer-motion";
 import { CafeScene } from "@/components/CafeScene";
 import { SettingsBar } from "@/components/SettingsBar";
 import { DrinkDisplay } from "@/components/DrinkDisplay";
@@ -8,19 +9,55 @@ import { CycleTracker } from "@/components/CycleTracker";
 import { ModeSelector } from "@/components/ModeSelector";
 import { TodoList } from "@/components/TodoList";
 import { FocusModeOverlay } from "@/components/FocusModeOverlay";
+import { SessionCelebration } from "@/components/SessionCelebration";
 import { useTimer } from "@/hooks/useTimer";
 import { useTimerConfig } from "@/hooks/useTimerConfig";
+import { useAppPreferences } from "@/hooks/useAppPreferences";
 import { useTheme } from "@/hooks/useTheme";
 import { useThemeFavicon } from "@/hooks/useThemeFavicon";
+import { useChime } from "@/hooks/useChime";
+import { useAmbientSound } from "@/hooks/useAmbientSound";
+import { useTabTitle } from "@/hooks/useTabTitle";
 import { useTodos } from "@/hooks/useTodos";
+import type { SessionCompleteEvent } from "@/types/preferences";
+import type { AppPreferences } from "@/types/preferences";
+import type { TimerConfig } from "@/types/timer";
 
 export default function App() {
   const { config: timerConfig, updateConfig } = useTimerConfig();
+  const { preferences, updatePreferences } = useAppPreferences();
   const { themeId, theme, setTheme } = useTheme();
   useThemeFavicon(theme.cycleIcon);
-  const timer = useTimer(timerConfig);
-  const { todos, addTodo, toggleTodo, deleteTodo, updateTodo } = useTodos();
+  useAmbientSound(preferences);
+
+  const { playChime } = useChime();
+  const preferencesRef = useRef(preferences);
+  preferencesRef.current = preferences;
+
+  const [celebration, setCelebration] = useState<SessionCompleteEvent | null>(
+    null,
+  );
   const [isFocusMode, setIsFocusMode] = useState(false);
+
+  const onSessionComplete = useCallback(
+    (event: SessionCompleteEvent) => {
+      setCelebration(event);
+      if (preferencesRef.current.chimeEnabled) {
+        playChime();
+      }
+    },
+    [playChime],
+  );
+
+  const timer = useTimer(timerConfig, preferences, { onSessionComplete });
+  const { todos, addTodo, toggleTodo, deleteTodo, updateTodo } = useTodos();
+
+  useTabTitle({
+    minutes: timer.minutes,
+    seconds: timer.seconds,
+    state: timer.state,
+    mode: timer.mode,
+  });
 
   useEffect(() => {
     if (timer.mode !== "focus") {
@@ -28,8 +65,36 @@ export default function App() {
     }
   }, [timer.mode]);
 
+  function handleSavePreferences(prefs: AppPreferences) {
+    updatePreferences(prefs);
+  }
+
+  function handleSaveSettings(config: TimerConfig, prefs: AppPreferences) {
+    updatePreferences(prefs);
+
+    const configChanged =
+      config.focusMinutes !== timerConfig.focusMinutes ||
+      config.breakMinutes !== timerConfig.breakMinutes ||
+      config.longBreakMinutes !== timerConfig.longBreakMinutes ||
+      config.cyclesBeforeLongBreak !== timerConfig.cyclesBeforeLongBreak;
+
+    if (configChanged) {
+      updateConfig(config);
+    }
+  }
+
   return (
     <CafeScene scene={theme.scene} themeId={themeId}>
+      <AnimatePresence>
+        {celebration && (
+          <SessionCelebration
+            completedMode={celebration.completedMode}
+            drinkIcon={theme.cycleIcon}
+            onDismiss={() => setCelebration(null)}
+          />
+        )}
+      </AnimatePresence>
+
       {isFocusMode && (
         <FocusModeOverlay
           minutes={timer.minutes}
@@ -45,11 +110,12 @@ export default function App() {
       )}
 
       <div className="grid flex-1 grid-cols-[1fr_minmax(240px,280px)] gap-10">
-        {/* Left column: settings bar on top, then drink & timer side by side */}
         <div className="flex flex-col gap-6">
           <SettingsBar
             timerConfig={timerConfig}
-            onConfigChange={updateConfig}
+            preferences={preferences}
+            onSaveSettings={handleSaveSettings}
+            onSavePreferences={handleSavePreferences}
             themeId={themeId}
             onThemeChange={setTheme}
             showFocusModeButton={timer.mode === "focus"}
@@ -89,8 +155,7 @@ export default function App() {
           </div>
         </div>
 
-        {/* Right column: todo list spanning full height */}
-        <div className="cafe-card min-h-[200px] max-h-[588px]">
+        <div className="cafe-card min-h-[200px] max-h-[585px]">
           <TodoList
             todos={todos}
             onAdd={addTodo}

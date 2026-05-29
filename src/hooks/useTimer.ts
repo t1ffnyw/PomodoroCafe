@@ -1,6 +1,11 @@
+// useTimer hook to manage the timer state and logic
+
 import { useState, useRef, useCallback, useEffect } from "react";
 import type { TimerMode, TimerState, TimerConfig } from "@/types/timer";
 import { DEFAULT_TIMER_CONFIG } from "@/types/timer";
+import type { AppPreferences } from "@/types/preferences";
+import { DEFAULT_APP_PREFERENCES } from "@/types/preferences";
+import type { SessionCompleteEvent } from "@/types/preferences";
 
 function getMsForMode(mode: TimerMode, config: TimerConfig): number {
   switch (mode) {
@@ -13,18 +18,51 @@ function getMsForMode(mode: TimerMode, config: TimerConfig): number {
   }
 }
 
-export function useTimer(config: TimerConfig = DEFAULT_TIMER_CONFIG) {
+function shouldAutoStart(
+  completedMode: TimerMode,
+  nextMode: TimerMode,
+  preferences: AppPreferences,
+): boolean {
+  if (completedMode === "focus" && preferences.autoStartBreaks) {
+    return nextMode === "break" || nextMode === "longBreak";
+  }
+  if (
+    (completedMode === "break" || completedMode === "longBreak") &&
+    preferences.autoStartFocus
+  ) {
+    return nextMode === "focus";
+  }
+  return false;
+}
+
+type UseTimerOptions = {
+  onSessionComplete?: (event: SessionCompleteEvent) => void;
+};
+
+export function useTimer(
+  config: TimerConfig = DEFAULT_TIMER_CONFIG,
+  preferences: AppPreferences = DEFAULT_APP_PREFERENCES,
+  options: UseTimerOptions = {},
+) {
+  const { onSessionComplete } = options;
+
   const [mode, setMode] = useState<TimerMode>("focus");
   const [state, setState] = useState<TimerState>("idle");
   const [cycle, setCycle] = useState(0);
   const [remainingMs, setRemainingMs] = useState(
-    getMsForMode("focus", config)
+    getMsForMode("focus", config),
   );
 
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const cycleRef = useRef(0);
   const configRef = useRef(config);
+  const preferencesRef = useRef(preferences);
+  const onSessionCompleteRef = useRef(onSessionComplete);
+  const modeRef = useRef<TimerMode>("focus");
   configRef.current = config;
+  preferencesRef.current = preferences;
+  onSessionCompleteRef.current = onSessionComplete;
+  modeRef.current = mode;
 
   const totalMs = getMsForMode(mode, config);
   const minutes = Math.floor(remainingMs / 60_000);
@@ -37,6 +75,78 @@ export function useTimer(config: TimerConfig = DEFAULT_TIMER_CONFIG) {
       intervalRef.current = null;
     }
   }, []);
+
+  const handleSessionCompleteRef = useRef<(completedMode: TimerMode) => void>(
+    () => {},
+  );
+
+  const beginCountdown = useCallback(
+    (startRemainingMs: number) => {
+      clearTimer();
+      setState("running");
+
+      const startTime = Date.now();
+
+      intervalRef.current = setInterval(() => {
+        const elapsed = Date.now() - startTime;
+        const newRemaining = Math.max(0, startRemainingMs - elapsed);
+        setRemainingMs(newRemaining);
+
+        if (newRemaining <= 0) {
+          handleSessionCompleteRef.current(modeRef.current);
+        }
+      }, 100);
+    },
+    [clearTimer],
+  );
+
+  const handleSessionComplete = useCallback(
+    (completedMode: TimerMode) => {
+      clearTimer();
+      const cfg = configRef.current;
+      const prefs = preferencesRef.current;
+
+      let nextMode: TimerMode;
+      let nextRemainingMs: number;
+
+      if (completedMode === "focus") {
+        const nextCycle = cycleRef.current + 1;
+        cycleRef.current = nextCycle;
+        setCycle(nextCycle);
+
+        if (nextCycle >= cfg.cyclesBeforeLongBreak) {
+          nextMode = "longBreak";
+          nextRemainingMs = getMsForMode("longBreak", cfg);
+        } else {
+          nextMode = "break";
+          nextRemainingMs = getMsForMode("break", cfg);
+        }
+      } else {
+        if (completedMode === "longBreak") {
+          cycleRef.current = 0;
+          setCycle(0);
+        }
+        nextMode = "focus";
+        nextRemainingMs = getMsForMode("focus", cfg);
+      }
+
+      setMode(nextMode);
+      setRemainingMs(nextRemainingMs);
+      modeRef.current = nextMode;
+
+      const autoStart = shouldAutoStart(completedMode, nextMode, prefs);
+      if (autoStart) {
+        beginCountdown(nextRemainingMs);
+      } else {
+        setState("idle");
+      }
+
+      onSessionCompleteRef.current?.({ completedMode, nextMode });
+    },
+    [clearTimer, beginCountdown],
+  );
+
+  handleSessionCompleteRef.current = handleSessionComplete;
 
   const switchMode = useCallback(
     (newMode: TimerMode) => {
@@ -52,57 +162,15 @@ export function useTimer(config: TimerConfig = DEFAULT_TIMER_CONFIG) {
 
       setMode(newMode);
       setRemainingMs(getMsForMode(newMode, cfg));
+      modeRef.current = newMode;
     },
-    [clearTimer]
+    [clearTimer],
   );
-
-  const handleSessionComplete = useCallback(() => {
-    clearTimer();
-    setState("idle");
-    const cfg = configRef.current;
-
-    if (mode === "focus") {
-      const nextCycle = cycleRef.current + 1;
-      cycleRef.current = nextCycle;
-      setCycle(nextCycle);
-
-      if (nextCycle >= cfg.cyclesBeforeLongBreak) {
-        setMode("longBreak");
-        setRemainingMs(getMsForMode("longBreak", cfg));
-        return;
-      }
-
-      setMode("break");
-      setRemainingMs(getMsForMode("break", cfg));
-      return;
-    }
-
-    if (mode === "longBreak") {
-      cycleRef.current = 0;
-      setCycle(0);
-    }
-
-    setMode("focus");
-      setRemainingMs(getMsForMode("focus", cfg));
-  }, [mode, clearTimer]);
 
   const start = useCallback(() => {
     if (state === "running" || intervalRef.current) return;
-    setState("running");
-
-    const startTime = Date.now();
-    const startRemaining = remainingMs;
-
-    intervalRef.current = setInterval(() => {
-      const elapsed = Date.now() - startTime;
-      const newRemaining = Math.max(0, startRemaining - elapsed);
-      setRemainingMs(newRemaining);
-
-      if (newRemaining <= 0) {
-        handleSessionComplete();
-      }
-    }, 100);
-  }, [state, remainingMs, handleSessionComplete]);
+    beginCountdown(remainingMs);
+  }, [state, remainingMs, beginCountdown]);
 
   const pause = useCallback(() => {
     clearTimer();
@@ -115,6 +183,7 @@ export function useTimer(config: TimerConfig = DEFAULT_TIMER_CONFIG) {
     setMode("focus");
     cycleRef.current = 0;
     setCycle(0);
+    modeRef.current = "focus";
     setRemainingMs(getMsForMode("focus", configRef.current));
   }, [clearTimer]);
 
