@@ -37,6 +37,7 @@ function shouldAutoStart(
 
 type UseTimerOptions = {
   onSessionComplete?: (event: SessionCompleteEvent) => void;
+  onFocusElapsed?: (elapsedMs: number) => void;
 };
 
 export function useTimer(
@@ -44,7 +45,7 @@ export function useTimer(
   preferences: AppPreferences = DEFAULT_APP_PREFERENCES,
   options: UseTimerOptions = {},
 ) {
-  const { onSessionComplete } = options;
+  const { onSessionComplete, onFocusElapsed } = options;
 
   const [mode, setMode] = useState<TimerMode>("focus");
   const [state, setState] = useState<TimerState>("idle");
@@ -58,10 +59,14 @@ export function useTimer(
   const configRef = useRef(config);
   const preferencesRef = useRef(preferences);
   const onSessionCompleteRef = useRef(onSessionComplete);
+  const onFocusElapsedRef = useRef(onFocusElapsed);
   const modeRef = useRef<TimerMode>("focus");
+  const segmentStartedAtRef = useRef<number | null>(null);
+
   configRef.current = config;
   preferencesRef.current = preferences;
   onSessionCompleteRef.current = onSessionComplete;
+  onFocusElapsedRef.current = onFocusElapsed;
   modeRef.current = mode;
 
   const totalMs = getMsForMode(mode, config);
@@ -76,6 +81,28 @@ export function useTimer(
     }
   }, []);
 
+  const flushFocusTime = useCallback(() => {
+    if (modeRef.current === "focus" && segmentStartedAtRef.current !== null) {
+      const now = Date.now();
+      const elapsed = now - segmentStartedAtRef.current;
+      segmentStartedAtRef.current = now;
+      if (elapsed > 0) {
+        onFocusElapsedRef.current?.(elapsed);
+      }
+    }
+  }, []);
+
+  const endFocusSegment = useCallback(() => {
+    if (modeRef.current === "focus" && segmentStartedAtRef.current !== null) {
+      const now = Date.now();
+      const elapsed = now - segmentStartedAtRef.current;
+      segmentStartedAtRef.current = null;
+      if (elapsed > 0) {
+        onFocusElapsedRef.current?.(elapsed);
+      }
+    }
+  }, []);
+
   const handleSessionCompleteRef = useRef<(completedMode: TimerMode) => void>(
     () => {},
   );
@@ -84,6 +111,10 @@ export function useTimer(
     (startRemainingMs: number) => {
       clearTimer();
       setState("running");
+
+      if (modeRef.current === "focus") {
+        segmentStartedAtRef.current = Date.now();
+      }
 
       const startTime = Date.now();
 
@@ -103,6 +134,9 @@ export function useTimer(
   const handleSessionComplete = useCallback(
     (completedMode: TimerMode) => {
       clearTimer();
+      if (completedMode === "focus") {
+        endFocusSegment();
+      }
       const cfg = configRef.current;
       const prefs = preferencesRef.current;
 
@@ -143,7 +177,7 @@ export function useTimer(
 
       onSessionCompleteRef.current?.({ completedMode, nextMode });
     },
-    [clearTimer, beginCountdown],
+    [clearTimer, beginCountdown, endFocusSegment],
   );
 
   handleSessionCompleteRef.current = handleSessionComplete;
@@ -152,6 +186,7 @@ export function useTimer(
     (newMode: TimerMode) => {
       const cfg = configRef.current;
 
+      endFocusSegment();
       clearTimer();
       setState("idle");
 
@@ -164,7 +199,7 @@ export function useTimer(
       setRemainingMs(getMsForMode(newMode, cfg));
       modeRef.current = newMode;
     },
-    [clearTimer],
+    [clearTimer, endFocusSegment],
   );
 
   const start = useCallback(() => {
@@ -173,11 +208,13 @@ export function useTimer(
   }, [state, remainingMs, beginCountdown]);
 
   const pause = useCallback(() => {
+    endFocusSegment();
     clearTimer();
     setState("paused");
-  }, [clearTimer]);
+  }, [clearTimer, endFocusSegment]);
 
   const reset = useCallback(() => {
+    endFocusSegment();
     clearTimer();
     setState("idle");
     setMode("focus");
@@ -185,20 +222,24 @@ export function useTimer(
     setCycle(0);
     modeRef.current = "focus";
     setRemainingMs(getMsForMode("focus", configRef.current));
-  }, [clearTimer]);
+  }, [clearTimer, endFocusSegment]);
 
   useEffect(() => {
-    return clearTimer;
-  }, [clearTimer]);
+    return () => {
+      endFocusSegment();
+      clearTimer();
+    };
+  }, [clearTimer, endFocusSegment]);
 
   useEffect(() => {
+    endFocusSegment();
     clearTimer();
     setState("idle");
     setMode("focus");
     cycleRef.current = 0;
     setCycle(0);
     setRemainingMs(getMsForMode("focus", config));
-  }, [config, clearTimer]);
+  }, [config, clearTimer, endFocusSegment]);
 
   return {
     mode,
@@ -212,5 +253,6 @@ export function useTimer(
     pause,
     reset,
     switchMode,
+    flushFocusTime,
   };
 }

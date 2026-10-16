@@ -221,7 +221,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .popup {
-  @apply absolute right-0 top-full z-50 mt-2 w-64 rounded-xl bg-white/95 p-5 shadow-lg backdrop-blur-sm;
+  @apply absolute right-0 top-full z-50 mt-2 rounded-xl bg-white/95 p-5 shadow-lg backdrop-blur-sm;
 }
 
 /* Typography helpers */
