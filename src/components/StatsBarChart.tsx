@@ -17,12 +17,12 @@ export function StatsBarChart({
   const rawMax = Math.max(...points.map((p) => p.value), 0);
   const maxVal = rawMax > 0 ? rawMax : 10;
 
-  const width = 320;
-  const height = 130;
-  const padLeft = 28;
-  const padRight = 16;
-  const padTop = 22;
-  const padBottom = 26;
+  const width = 560;
+  const height = 220;
+  const padLeft = 36;
+  const padRight = 24;
+  const padTop = 32;
+  const padBottom = 34;
 
   const plotWidth = width - padLeft - padRight;
   const plotHeight = height - padTop - padBottom;
@@ -30,7 +30,7 @@ export function StatsBarChart({
 
   const count = points.length;
   const slotWidth = plotWidth / (count || 1);
-  const barWidth = isDayView ? Math.max(5, slotWidth * 0.6) : Math.min(22, slotWidth * 0.55);
+  const barWidth = isDayView ? Math.max(6, slotWidth * 0.6) : Math.min(32, slotWidth * 0.55);
 
   const hoveredPoint = hoveredIdx !== null ? points[hoveredIdx] : null;
 

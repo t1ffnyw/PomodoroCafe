@@ -21,11 +21,11 @@ export function StatsPopup({ getView, onClose }: StatsPopupProps) {
       initial={{ opacity: 0, y: -8 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -8 }}
-      className="popup w-96 max-w-[calc(100vw-2rem)] flex flex-col gap-3.5"
+      className="popup w-[32rem] max-w-[calc(100vw-2rem)] flex flex-col gap-5 p-7"
     >
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h3 className="font-display text-base font-semibold text-cafe-text">
+        <h3 className="font-display text-lg font-semibold text-cafe-text">
           Study Progress
         </h3>
         <button
@@ -69,50 +69,50 @@ export function StatsPopup({ getView, onClose }: StatsPopupProps) {
       </div>
 
       {/* Summary stats display */}
-      <div className="grid grid-cols-2 gap-2 rounded-lg bg-cafe-pink-light/40 p-2.5">
+      <div className="grid grid-cols-2 gap-4 rounded-lg bg-cafe-pink-light/40 p-3.5">
         {range === "day" ? (
           <>
-            <div className="flex flex-col">
-              <span className="font-body text-[11px] text-cafe-text-light">
+            <div className="flex flex-col min-w-0">
+              <span className="font-body text-xs text-cafe-text-light whitespace-nowrap">
                 Today&apos;s Focus
               </span>
-              <span className="font-display text-lg font-bold text-cafe-text">
+              <span className="font-display text-xl font-bold text-cafe-text">
                 {summary.totalMinutes}{" "}
-                <span className="font-body text-xs font-normal">min</span>
+                <span className="font-body text-sm font-normal">min</span>
               </span>
             </div>
-            <div className="flex flex-col">
-              <span className="font-body text-[11px] text-cafe-text-light">
+            <div className="flex flex-col min-w-0">
+              <span className="font-body text-xs text-cafe-text-light whitespace-nowrap">
                 Completed Sessions
               </span>
-              <span className="font-display text-lg font-bold text-cafe-text">
+              <span className="font-display text-xl font-bold text-cafe-text">
                 {summary.totalSessions}
               </span>
             </div>
           </>
         ) : (
           <>
-            <div className="flex flex-col">
-              <span className="font-body text-[11px] text-cafe-text-light">
+            <div className="flex flex-col min-w-0">
+              <span className="font-body text-xs text-cafe-text-light whitespace-nowrap">
                 Daily Avg Time
               </span>
-              <span className="font-display text-lg font-bold text-cafe-text">
+              <span className="font-display text-xl font-bold text-cafe-text">
                 {summary.averageMinutesPerDay ?? 0}{" "}
-                <span className="font-body text-xs font-normal">min/day</span>
+                <span className="font-body text-sm font-normal">min/day</span>
               </span>
-              <span className="font-body text-[10px] text-cafe-text-light opacity-75">
+              <span className="font-body text-[11px] text-cafe-text-light opacity-75 whitespace-nowrap">
                 Total: {summary.totalMinutes} min
               </span>
             </div>
-            <div className="flex flex-col">
-              <span className="font-body text-[11px] text-cafe-text-light">
+            <div className="flex flex-col min-w-0">
+              <span className="font-body text-xs text-cafe-text-light whitespace-nowrap">
                 Daily Avg Sessions
               </span>
-              <span className="font-display text-lg font-bold text-cafe-text">
+              <span className="font-display text-xl font-bold text-cafe-text">
                 {summary.averageSessionsPerDay ?? 0}{" "}
-                <span className="font-body text-xs font-normal">/day</span>
+                <span className="font-body text-sm font-normal">/day</span>
               </span>
-              <span className="font-body text-[10px] text-cafe-text-light opacity-75">
+              <span className="font-body text-[11px] text-cafe-text-light opacity-75 whitespace-nowrap">
                 Total: {summary.totalSessions} sessions
               </span>
             </div>
@@ -144,7 +144,7 @@ export function StatsPopup({ getView, onClose }: StatsPopupProps) {
       </div>
 
       {/* Chart visualization */}
-      <div className="rounded-lg bg-white/70 p-2 border border-cafe-sage-light/50">
+      <div className="rounded-lg bg-white/70 p-3 border border-cafe-sage-light/50">
         {range === "month" ? (
           <StatsLineChart points={data.points} unit={data.unit} />
         ) : (

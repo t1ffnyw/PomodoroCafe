@@ -12,12 +12,12 @@ export function StatsLineChart({ points, unit }: StatsLineChartProps) {
   const rawMax = Math.max(...points.map((p) => p.value), 0);
   const maxVal = rawMax > 0 ? rawMax : 10;
 
-  const width = 320;
-  const height = 130;
-  const padLeft = 24;
-  const padRight = 20;
-  const padTop = 22;
-  const padBottom = 26;
+  const width = 560;
+  const height = 220;
+  const padLeft = 32;
+  const padRight = 28;
+  const padTop = 32;
+  const padBottom = 34;
 
   const plotWidth = width - padLeft - padRight;
   const plotHeight = height - padTop - padBottom;
