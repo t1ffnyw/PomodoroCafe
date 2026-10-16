@@ -1,6 +1,11 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import type { ProgressMetric, ProgressRange, ProgressViewData } from "@/types/progress";
+import {
+  formatFocusDuration,
+  resolveTimeUnit,
+  scalePointsForTimeUnit,
+} from "@/types/progress";
 import { StatsBarChart } from "./StatsBarChart";
 import { StatsLineChart } from "./StatsLineChart";
 
@@ -15,6 +20,23 @@ export function StatsPopup({ getView, onClose }: StatsPopupProps) {
 
   const data = getView(range, metric);
   const { summary } = data;
+
+  const timeUnit = resolveTimeUnit(
+    range,
+    summary.averageMinutesPerDay ?? 0,
+  );
+  const chartUnit = metric === "sessions" ? "sessions" : timeUnit;
+  const chartPoints =
+    metric === "minutes"
+      ? scalePointsForTimeUnit(data.points, timeUnit)
+      : data.points;
+
+  const todayFocus = formatFocusDuration(summary.totalMinutes, "min");
+  const avgFocus = formatFocusDuration(
+    summary.averageMinutesPerDay ?? 0,
+    timeUnit,
+  );
+  const totalFocus = formatFocusDuration(summary.totalMinutes, timeUnit);
 
   return (
     <motion.div
@@ -77,8 +99,10 @@ export function StatsPopup({ getView, onClose }: StatsPopupProps) {
                 Today&apos;s Focus
               </span>
               <span className="font-display text-xl font-bold text-cafe-text">
-                {summary.totalMinutes}{" "}
-                <span className="font-body text-sm font-normal">min</span>
+                {todayFocus.amount}{" "}
+                <span className="font-body text-sm font-normal">
+                  {todayFocus.unitLabel}
+                </span>
               </span>
             </div>
             <div className="flex flex-col min-w-0">
@@ -97,11 +121,13 @@ export function StatsPopup({ getView, onClose }: StatsPopupProps) {
                 Daily Avg Time
               </span>
               <span className="font-display text-xl font-bold text-cafe-text">
-                {summary.averageMinutesPerDay ?? 0}{" "}
-                <span className="font-body text-sm font-normal">min/day</span>
+                {avgFocus.amount}{" "}
+                <span className="font-body text-sm font-normal">
+                  {avgFocus.unitLabel}/day
+                </span>
               </span>
               <span className="font-body text-[11px] text-cafe-text-light opacity-75 whitespace-nowrap">
-                Total: {summary.totalMinutes} min
+                Total: {totalFocus.amount} {totalFocus.unitLabel}
               </span>
             </div>
             <div className="flex flex-col min-w-0">
@@ -137,7 +163,7 @@ export function StatsPopup({ getView, onClose }: StatsPopupProps) {
                   : "bg-white/60 text-cafe-text-light hover:text-cafe-text"
               }`}
             >
-              {m === "minutes" ? "Minutes" : "Sessions"}
+              {m === "minutes" ? "Time" : "Sessions"}
             </button>
           ))}
         </div>
@@ -146,11 +172,11 @@ export function StatsPopup({ getView, onClose }: StatsPopupProps) {
       {/* Chart visualization */}
       <div className="rounded-lg bg-white/70 p-3 border border-cafe-sage-light/50">
         {range === "month" ? (
-          <StatsLineChart points={data.points} unit={data.unit} />
+          <StatsLineChart points={chartPoints} unit={chartUnit} />
         ) : (
           <StatsBarChart
-            points={data.points}
-            unit={data.unit}
+            points={chartPoints}
+            unit={chartUnit}
             isDayView={range === "day"}
           />
         )}
