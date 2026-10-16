@@ -6,9 +6,11 @@ import { AnimatePresence } from "framer-motion";
 import type { TimerConfig } from "@/types/timer";
 import type { AppPreferences } from "@/types/preferences";
 import type { ThemeId } from "@/types/theme";
+import type { ProgressMetric, ProgressRange, ProgressViewData } from "@/types/progress";
 import { SettingsPopup } from "./SettingsPopup";
 import { SoundPopup } from "./SoundPopup";
 import { ThemePicker } from "./ThemePicker";
+import { StatsPopup } from "./StatsPopup";
 import { FocusModeButton } from "./FocusModeButton";
 
 type SettingsBarProps = {
@@ -21,18 +23,21 @@ type SettingsBarProps = {
   onThemeChange: (id: ThemeId) => void;
   showFocusModeButton?: boolean;
   onEnterFocusMode?: () => void;
+  getView: (range: ProgressRange, metric: ProgressMetric) => ProgressViewData;
 };
 
 function closeOtherPanels(
-  except: "sound" | "theme" | "settings" | null,
+  except: "sound" | "theme" | "stats" | "settings" | null,
   setters: {
     setIsSoundOpen: (v: boolean) => void;
     setIsThemeOpen: (v: boolean) => void;
+    setIsStatsOpen: (v: boolean) => void;
     setIsSettingsOpen: (v: boolean) => void;
   },
 ) {
   setters.setIsSoundOpen(except === "sound");
   setters.setIsThemeOpen(except === "theme");
+  setters.setIsStatsOpen(except === "stats");
   setters.setIsSettingsOpen(except === "settings");
 }
 
@@ -46,14 +51,17 @@ export function SettingsBar({
   onThemeChange,
   showFocusModeButton = false,
   onEnterFocusMode,
+  getView,
 }: SettingsBarProps) {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isThemeOpen, setIsThemeOpen] = useState(false);
+  const [isStatsOpen, setIsStatsOpen] = useState(false);
   const [isSoundOpen, setIsSoundOpen] = useState(false);
 
   const panelSetters = {
     setIsSoundOpen,
     setIsThemeOpen,
+    setIsStatsOpen,
     setIsSettingsOpen,
   };
 
@@ -114,6 +122,30 @@ export function SettingsBar({
         <button
           type="button"
           onClick={() => {
+            const next = !isStatsOpen;
+            closeOtherPanels(next ? "stats" : null, panelSetters);
+          }}
+          className="btn btn-icon btn--pink text-white hover:text-white"
+          aria-label="Study progress stats"
+        >
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <line x1="18" y1="20" x2="18" y2="10" />
+            <line x1="12" y1="20" x2="12" y2="4" />
+            <line x1="6" y1="20" x2="6" y2="14" />
+          </svg>
+        </button>
+        <button
+          type="button"
+          onClick={() => {
             const next = !isSettingsOpen;
             closeOtherPanels(next ? "settings" : null, panelSetters);
           }}
@@ -153,6 +185,14 @@ export function SettingsBar({
               themeId={themeId}
               onSelect={onThemeChange}
               onClose={() => setIsThemeOpen(false)}
+            />
+          )}
+        </AnimatePresence>
+        <AnimatePresence>
+          {isStatsOpen && (
+            <StatsPopup
+              getView={getView}
+              onClose={() => setIsStatsOpen(false)}
             />
           )}
         </AnimatePresence>

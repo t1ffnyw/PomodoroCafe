@@ -19,6 +19,7 @@ import { useChime } from "@/hooks/useChime";
 import { useAmbientSound } from "@/hooks/useAmbientSound";
 import { useTabTitle } from "@/hooks/useTabTitle";
 import { useTodos } from "@/hooks/useTodos";
+import { useStudyProgress } from "@/hooks/useStudyProgress";
 import type { SessionCompleteEvent } from "@/types/preferences";
 import type { AppPreferences } from "@/types/preferences";
 import type { TimerConfig } from "@/types/timer";
@@ -39,18 +40,50 @@ export default function App() {
   );
   const [isFocusMode, setIsFocusMode] = useState(false);
 
+  const studyProgress = useStudyProgress();
+
+  const onFocusElapsed = useCallback(
+    (elapsedMs: number) => {
+      studyProgress.recordFocusMs(elapsedMs);
+    },
+    [studyProgress],
+  );
+
   const onSessionComplete = useCallback(
     (event: SessionCompleteEvent) => {
+      if (event.completedMode === "focus") {
+        studyProgress.recordCompletedSession();
+      }
       setCelebration(event);
       if (preferencesRef.current.chimeEnabled) {
         playChime();
       }
     },
-    [playChime],
+    [playChime, studyProgress],
   );
 
-  const timer = useTimer(timerConfig, preferences, { onSessionComplete });
+  const timer = useTimer(timerConfig, preferences, {
+    onSessionComplete,
+    onFocusElapsed,
+  });
   const { todos, addTodo, toggleTodo, deleteTodo, updateTodo } = useTodos();
+
+  const flushFocusTime = timer.flushFocusTime;
+  useEffect(() => {
+    const handleVisibilityOrPageHide = () => {
+      flushFocusTime();
+    };
+
+    window.addEventListener("pagehide", handleVisibilityOrPageHide);
+    window.addEventListener("beforeunload", handleVisibilityOrPageHide);
+    document.addEventListener("visibilitychange", handleVisibilityOrPageHide);
+
+    return () => {
+      window.removeEventListener("pagehide", handleVisibilityOrPageHide);
+      window.removeEventListener("beforeunload", handleVisibilityOrPageHide);
+      document.removeEventListener("visibilitychange", handleVisibilityOrPageHide);
+    };
+  }, [flushFocusTime]);
 
   useTabTitle({
     minutes: timer.minutes,
@@ -120,6 +153,7 @@ export default function App() {
             onThemeChange={setTheme}
             showFocusModeButton={timer.mode === "focus"}
             onEnterFocusMode={() => setIsFocusMode(true)}
+            getView={studyProgress.getView}
           />
 
           <div className="flex flex-1 items-center gap-6">

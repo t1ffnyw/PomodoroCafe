@@ -29,6 +29,13 @@ A cozy café-themed Pomodoro timer built with React. Work in focused sprints, ta
 - Completed tasks hidden by default; toggle **Show completed** to reveal them
 - All todos saved to `localStorage`
 
+### Study progress & stats
+- Tracks total focus minutes and completed sessions in `localStorage` (`cafe-pomodoro-progress`)
+- Automatically records study minutes on pause, reset, completion, and page hide/unload so partial focus time counts
+- View Day, Week, and Month breakdowns with totals and daily averages
+- Toggle graph view between focus minutes and completed sessions
+- Interactive theme-matched bar charts for Day and Week, and a smooth line chart for Month
+
 ### Settings
 - Adjust focus, break, long break, and cycle count from the gear icon
 - Toggle auto-start breaks / auto-start focus
@@ -78,7 +85,7 @@ npm run preview  # Preview production build locally
 | Build | Vite 8 |
 | Styling | Tailwind CSS v4 |
 | Animation | Framer Motion |
-| Persistence | `localStorage` (timer config, preferences, theme, todos) |
+| Persistence | `localStorage` (timer config, preferences, theme, todos, study progress) |
 
 ## Project structure
 
@@ -97,6 +104,9 @@ src/
     SettingsBar.tsx       Title, theme picker, settings, focus mode entry
     SettingsPopup.tsx     Timer duration settings
     ThemePicker.tsx       Matcha / coffee theme previews
+    StatsPopup.tsx        Study progress and stats panel
+    StatsBarChart.tsx     SVG bar chart for Day / Week progress
+    StatsLineChart.tsx    SVG line chart for Month progress
     SessionCelebration.tsx Celebration modal on session complete
     FocusModeOverlay.tsx  Full-screen focus view
     FocusModeButton.tsx   Enter focus mode
@@ -110,6 +120,7 @@ src/
     useTheme.ts           Active theme + localStorage
     useThemeFavicon.ts    Updates tab icon per theme
     useTodos.ts           Todo CRUD + localStorage
+    useStudyProgress.ts   Focus progress persistence and analytics
   config/
     drinks.ts             Drink layer definitions and sprite frames
     scenes.ts             Background + drink pairings
@@ -121,6 +132,7 @@ src/
     timer.ts              Timer types and defaults
     preferences.ts        App preferences and session events
     todo.ts               Todo type
+    progress.ts           Study progress metrics and chart types
 
 public/assets/drinks/
   matcha/                 Matcha drink sprites and mini-matcha icon
