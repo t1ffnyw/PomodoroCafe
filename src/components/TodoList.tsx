@@ -1,9 +1,15 @@
 // TodoList component to display the todo list
-// with a form to add a new todo and a list of todos
+// with a form to add a new todo and a reorderable list of todos
 
-import { useEffect, useRef, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useEffect, useRef, useState, type ReactNode } from "react";
+import {
+  motion,
+  AnimatePresence,
+  Reorder,
+  useDragControls,
+} from "framer-motion";
 import type { Todo } from "@/types/todo";
+import type { NotionSyncState } from "@/hooks/useNotionSync";
 
 type TodoListProps = {
   todos: Todo[];
@@ -11,6 +17,12 @@ type TodoListProps = {
   onToggle: (id: string) => void;
   onDelete: (id: string) => void;
   onUpdate: (id: string, text: string) => void;
+  onReorder: (ordered: Todo[]) => void;
+  syncState: NotionSyncState;
+  /** Shows the Sync button next to Add when provided. */
+  onSync?: () => void;
+  /** Rendered in the bottom-left corner of the list; popups inside can anchor to its full width. */
+  footer?: ReactNode;
 };
 
 type TodoItemProps = {
@@ -24,6 +36,7 @@ function TodoItem({ todo, onToggle, onDelete, onUpdate }: TodoItemProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editText, setEditText] = useState(todo.text);
   const inputRef = useRef<HTMLInputElement>(null);
+  const dragControls = useDragControls();
 
   useEffect(() => {
     if (isEditing) {
@@ -67,12 +80,31 @@ function TodoItem({ todo, onToggle, onDelete, onUpdate }: TodoItemProps) {
   }`;
 
   return (
-    <motion.li
+    <Reorder.Item
+      value={todo}
+      dragListener={false}
+      dragControls={dragControls}
       initial={{ opacity: 0, y: -8 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, x: 20 }}
-      className="flex min-w-0 items-start gap-2 rounded-lg bg-white/40 px-3 py-2"
+      whileDrag={{ scale: 1.02, zIndex: 10 }}
+      className="relative flex min-w-0 items-start gap-2 rounded-lg bg-white/40 px-2 py-2"
     >
+      <button
+        type="button"
+        onPointerDown={(e) => dragControls.start(e)}
+        className="-ml-0.5 flex h-4 w-3 shrink-0 cursor-grab touch-none items-center justify-center text-cafe-text-light active:cursor-grabbing"
+        aria-label="Drag to reorder"
+      >
+        <svg width="8" height="14" viewBox="0 0 8 14" fill="currentColor">
+          <circle cx="2" cy="2" r="1.2" />
+          <circle cx="6" cy="2" r="1.2" />
+          <circle cx="2" cy="7" r="1.2" />
+          <circle cx="6" cy="7" r="1.2" />
+          <circle cx="2" cy="12" r="1.2" />
+          <circle cx="6" cy="12" r="1.2" />
+        </svg>
+      </button>
       <button
         type="button"
         onClick={() => onToggle(todo.id)}
@@ -110,7 +142,7 @@ function TodoItem({ todo, onToggle, onDelete, onUpdate }: TodoItemProps) {
       >
         ×
       </button>
-    </motion.li>
+    </Reorder.Item>
   );
 }
 
@@ -120,6 +152,10 @@ export function TodoList({
   onToggle,
   onDelete,
   onUpdate,
+  onReorder,
+  syncState,
+  onSync,
+  footer,
 }: TodoListProps) {
   const [input, setInput] = useState("");
   const [showCompleted, setShowCompleted] = useState(false);
@@ -137,6 +173,11 @@ export function TodoList({
   const visibleTodos = showCompleted
     ? todos
     : todos.filter((t) => !t.completed);
+  const isSyncing = syncState.status === "syncing";
+  const syncMessage =
+    syncState.status === "done" || syncState.status === "error"
+      ? syncState
+      : null;
 
   return (
     <div className="flex h-full flex-col gap-3">
@@ -153,7 +194,7 @@ export function TodoList({
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder="Add a task..."
-          className="input flex-1"
+          className="input min-w-0 flex-1"
         />
         <button
           type="submit"
@@ -161,7 +202,51 @@ export function TodoList({
         >
           Add
         </button>
+        {onSync && (
+          <button
+            type="button"
+            onClick={onSync}
+            disabled={isSyncing}
+            className="btn btn--cream h-9 w-9 shrink-0 rounded-lg disabled:opacity-60"
+            aria-label="Sync with Notion"
+            title="Sync with Notion"
+          >
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className={isSyncing ? "animate-spin" : undefined}
+            >
+              <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+              <path d="M3 3v5h5" />
+              <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16" />
+              <path d="M16 16h5v5" />
+            </svg>
+          </button>
+        )}
       </form>
+
+      <AnimatePresence>
+        {syncMessage && (
+          <motion.p
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            className={`-mt-1 font-body text-xs ${
+              syncMessage.status === "error"
+                ? "text-cafe-wood-dark"
+                : "text-cafe-text-light"
+            }`}
+          >
+            {syncMessage.message}
+          </motion.p>
+        )}
+      </AnimatePresence>
 
       {completedCount > 0 && (
         <button
@@ -173,7 +258,13 @@ export function TodoList({
         </button>
       )}
 
-      <ul className="cafe-scrollbar flex min-w-0 flex-1 flex-col gap-1.5 overflow-x-hidden overflow-y-auto">
+      <Reorder.Group
+        axis="y"
+        values={visibleTodos}
+        onReorder={onReorder}
+        layoutScroll
+        className="cafe-scrollbar flex min-w-0 flex-1 flex-col gap-1.5 overflow-x-hidden overflow-y-auto"
+      >
         <AnimatePresence>
           {visibleTodos.map((todo) => (
             <TodoItem
@@ -185,7 +276,9 @@ export function TodoList({
             />
           ))}
         </AnimatePresence>
-      </ul>
+      </Reorder.Group>
+
+      {footer && <div className="relative flex justify-start">{footer}</div>}
     </div>
   );
 }

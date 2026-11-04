@@ -8,6 +8,7 @@ import { Controls } from "@/components/Controls";
 import { CycleTracker } from "@/components/CycleTracker";
 import { ModeSelector } from "@/components/ModeSelector";
 import { TodoList } from "@/components/TodoList";
+import { NotionButton } from "@/components/NotionButton";
 import { FocusModeOverlay } from "@/components/FocusModeOverlay";
 import { SessionCelebration } from "@/components/SessionCelebration";
 import { useTimer } from "@/hooks/useTimer";
@@ -20,6 +21,8 @@ import { useAmbientSound } from "@/hooks/useAmbientSound";
 import { useTabTitle } from "@/hooks/useTabTitle";
 import { useTimerWidget } from "@/hooks/useTimerWidget";
 import { useTodos } from "@/hooks/useTodos";
+import { useNotionConnection } from "@/hooks/useNotionConnection";
+import { useNotionSync } from "@/hooks/useNotionSync";
 import { useStudyProgress } from "@/hooks/useStudyProgress";
 import type { SessionCompleteEvent } from "@/types/preferences";
 import type { AppPreferences } from "@/types/preferences";
@@ -67,7 +70,26 @@ export default function App() {
     onSessionComplete,
     onFocusElapsed,
   });
-  const { todos, addTodo, toggleTodo, deleteTodo, updateTodo } = useTodos();
+  const {
+    todos,
+    addTodo,
+    toggleTodo,
+    deleteTodo,
+    updateTodo,
+    addNotionTasks,
+    reorderTodos,
+  } = useTodos();
+
+  const notion = useNotionConnection();
+  const { syncState, sync } = useNotionSync(
+    todos,
+    preferences.notion,
+    addNotionTasks,
+    notion.markDisconnected,
+  );
+  const canSync =
+    notion.connection.status === "connected" &&
+    preferences.notion.databaseId !== null;
 
   const flushFocusTime = timer.flushFocusTime;
   useEffect(() => {
@@ -211,6 +233,16 @@ export default function App() {
             onToggle={toggleTodo}
             onDelete={deleteTodo}
             onUpdate={updateTodo}
+            onReorder={reorderTodos}
+            syncState={syncState}
+            onSync={canSync ? sync : undefined}
+            footer={
+              <NotionButton
+                preferences={preferences}
+                notion={notion}
+                onSavePreferences={handleSavePreferences}
+              />
+            }
           />
         </div>
       </div>

@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import type { Todo } from "@/types/todo";
+import type { NotionTask } from "@/types/notion";
 
 const STORAGE_KEY = "cafe-pomodoro-todos";
 
@@ -51,5 +52,48 @@ export function useTodos() {
     );
   }, []);
 
-  return { todos, addTodo, toggleTodo, deleteTodo, updateTodo };
+  /** Appends Notion tasks that aren't already in the list; existing todos are never changed. */
+  const addNotionTasks = useCallback((tasks: NotionTask[]) => {
+    setTodos((prev) => {
+      const linked = new Set(prev.map((t) => t.notionPageId));
+      const additions: Todo[] = tasks
+        .filter((task) => !linked.has(task.pageId))
+        .map((task) => ({
+          id: crypto.randomUUID(),
+          text: task.title,
+          completed: false,
+          createdAt: Date.now(),
+          notionPageId: task.pageId,
+          notionDue: task.due,
+        }));
+      return additions.length > 0 ? [...prev, ...additions] : prev;
+    });
+  }, []);
+
+  /**
+   * Applies a new order for a subset of todos (e.g. only the visible, incomplete ones).
+   * Todos outside the subset keep their positions.
+   */
+  const reorderTodos = useCallback((ordered: Todo[]) => {
+    setTodos((prev) => {
+      const orderedIds = new Set(ordered.map((t) => t.id));
+      const byId = new Map(prev.map((t) => [t.id, t]));
+      let next = 0;
+      return prev.map((t) => {
+        if (!orderedIds.has(t.id)) return t;
+        const replacement = ordered[next++];
+        return (replacement && byId.get(replacement.id)) ?? t;
+      });
+    });
+  }, []);
+
+  return {
+    todos,
+    addTodo,
+    toggleTodo,
+    deleteTodo,
+    updateTodo,
+    addNotionTasks,
+    reorderTodos,
+  };
 }
