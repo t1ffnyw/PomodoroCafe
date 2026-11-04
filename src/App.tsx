@@ -44,8 +44,8 @@ export default function App() {
   const studyProgress = useStudyProgress();
 
   const onFocusElapsed = useCallback(
-    (elapsedMs: number) => {
-      studyProgress.recordFocusMs(elapsedMs);
+    (elapsedMs: number, endedAt: number) => {
+      studyProgress.recordFocusMs(elapsedMs, endedAt);
     },
     [studyProgress],
   );

@@ -42,7 +42,7 @@ function shouldAutoStart(
 
 type UseTimerOptions = {
   onSessionComplete?: (event: SessionCompleteEvent) => void;
-  onFocusElapsed?: (elapsedMs: number) => void;
+  onFocusElapsed?: (elapsedMs: number, endedAt: number) => void;
 };
 
 export function useTimer(
@@ -92,27 +92,34 @@ export function useTimer(
     }
   }, []);
 
+  // A background tab can notice the countdown hit zero late; that overrun
+  // isn't focus time, so the focus clock stops at the deadline.
+  const focusClockNow = useCallback(
+    () => Math.min(Date.now(), deadlineRef.current ?? Infinity),
+    [],
+  );
+
   const flushFocusTime = useCallback(() => {
     if (modeRef.current === "focus" && segmentStartedAtRef.current !== null) {
-      const now = Date.now();
+      const now = focusClockNow();
       const elapsed = now - segmentStartedAtRef.current;
       segmentStartedAtRef.current = now;
       if (elapsed > 0) {
-        onFocusElapsedRef.current?.(elapsed);
+        onFocusElapsedRef.current?.(elapsed, now);
       }
     }
-  }, []);
+  }, [focusClockNow]);
 
   const endFocusSegment = useCallback(() => {
     if (modeRef.current === "focus" && segmentStartedAtRef.current !== null) {
-      const now = Date.now();
+      const now = focusClockNow();
       const elapsed = now - segmentStartedAtRef.current;
       segmentStartedAtRef.current = null;
       if (elapsed > 0) {
-        onFocusElapsedRef.current?.(elapsed);
+        onFocusElapsedRef.current?.(elapsed, now);
       }
     }
-  }, []);
+  }, [focusClockNow]);
 
   const handleSessionCompleteRef = useRef<(completedMode: TimerMode) => void>(
     () => {},
@@ -162,10 +169,10 @@ export function useTimer(
 
   const handleSessionComplete = useCallback(
     (completedMode: TimerMode) => {
-      clearTimer();
       if (completedMode === "focus") {
         endFocusSegment();
       }
+      clearTimer();
       const cfg = configRef.current;
       const prefs = preferencesRef.current;
 

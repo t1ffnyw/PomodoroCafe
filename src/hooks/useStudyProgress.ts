@@ -74,6 +74,51 @@ function formatHourLabel(hour: number): string {
   return hour < 12 ? `${hour}a` : `${hour - 12}p`;
 }
 
+function roundTenth(n: number): number {
+  return Math.round(n * 10) / 10;
+}
+
+/**
+ * Adds a focus chunk ending at `endTimestamp`, split across every local hour
+ * (and day) it spans. Minutes are stored unrounded so many small chunks still
+ * add up exactly; getView rounds for display.
+ */
+export function addFocusTime(
+  days: Record<string, DayProgress>,
+  ms: number,
+  endTimestamp: number,
+): Record<string, DayProgress> {
+  const updatedDays = { ...days };
+  let sliceStart = endTimestamp - ms;
+
+  while (sliceStart < endTimestamp) {
+    const start = new Date(sliceStart);
+    const nextHour = new Date(
+      start.getFullYear(),
+      start.getMonth(),
+      start.getDate(),
+      start.getHours() + 1,
+    ).getTime();
+    const sliceEnd = Math.min(nextHour, endTimestamp);
+    const minutes = (sliceEnd - sliceStart) / 60000;
+
+    const dateKey = getLocalDateKey(start);
+    const hour = start.getHours();
+    const currentDay = normalizeDay(updatedDays[dateKey]);
+    const updatedHourlyMinutes = [...currentDay.hourlyMinutes];
+    updatedHourlyMinutes[hour] = (updatedHourlyMinutes[hour] ?? 0) + minutes;
+
+    updatedDays[dateKey] = {
+      ...currentDay,
+      focusMinutes: currentDay.focusMinutes + minutes,
+      hourlyMinutes: updatedHourlyMinutes,
+    };
+    sliceStart = sliceEnd;
+  }
+
+  return updatedDays;
+}
+
 export function useStudyProgress() {
   const [store, setStore] = useState<ProgressStore>(loadStore);
 
@@ -81,36 +126,12 @@ export function useStudyProgress() {
     saveStore(store);
   }, [store]);
 
-  const recordFocusMs = useCallback((ms: number, timestamp = Date.now()) => {
-    if (ms < 1000) return; // ignore sub-second noise
-    const addedMinutes = Math.round((ms / 60000) * 10) / 10;
-    if (addedMinutes <= 0) return;
-
-    const date = new Date(timestamp);
-    const dateKey = getLocalDateKey(date);
-    const hour = date.getHours();
-
-    setStore((prev) => {
-      const currentDay = normalizeDay(prev.days[dateKey]);
-      const updatedHourlyMinutes = [...currentDay.hourlyMinutes];
-      const prevHourMins = updatedHourlyMinutes[hour] ?? 0;
-      updatedHourlyMinutes[hour] =
-        Math.round((prevHourMins + addedMinutes) * 10) / 10;
-
-      const updatedDay: DayProgress = {
-        ...currentDay,
-        focusMinutes: Math.round((currentDay.focusMinutes + addedMinutes) * 10) / 10,
-        hourlyMinutes: updatedHourlyMinutes,
-      };
-
-      return {
-        ...prev,
-        days: {
-          ...prev.days,
-          [dateKey]: updatedDay,
-        },
-      };
-    });
+  const recordFocusMs = useCallback((ms: number, endTimestamp = Date.now()) => {
+    if (ms <= 0) return;
+    setStore((prev) => ({
+      ...prev,
+      days: addFocusTime(prev.days, ms, endTimestamp),
+    }));
   }, []);
 
   const recordCompletedSession = useCallback((timestamp = Date.now()) => {
@@ -156,7 +177,7 @@ export function useStudyProgress() {
             label: formatHourLabel(h),
             value:
               metric === "minutes"
-                ? (dayData.hourlyMinutes[h] ?? 0)
+                ? roundTenth(dayData.hourlyMinutes[h] ?? 0)
                 : (dayData.hourlyCompletions[h] ?? 0),
           });
         }
@@ -166,7 +187,7 @@ export function useStudyProgress() {
           metric,
           unit,
           summary: {
-            totalMinutes: dayData.focusMinutes,
+            totalMinutes: roundTenth(dayData.focusMinutes),
             totalSessions: dayData.completedSessions,
           },
           points,
@@ -192,7 +213,10 @@ export function useStudyProgress() {
           points.push({
             key,
             label,
-            value: metric === "minutes" ? dayData.focusMinutes : dayData.completedSessions,
+            value:
+              metric === "minutes"
+                ? roundTenth(dayData.focusMinutes)
+                : dayData.completedSessions,
           });
         }
 
@@ -233,7 +257,10 @@ export function useStudyProgress() {
         points.push({
           key,
           label: String(dayNum),
-          value: metric === "minutes" ? dayData.focusMinutes : dayData.completedSessions,
+          value:
+            metric === "minutes"
+              ? roundTenth(dayData.focusMinutes)
+              : dayData.completedSessions,
         });
       }
 
