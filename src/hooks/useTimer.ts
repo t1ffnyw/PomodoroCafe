@@ -1,7 +1,12 @@
 // useTimer hook to manage the timer state and logic
 
 import { useState, useRef, useCallback, useEffect } from "react";
-import type { TimerMode, TimerState, TimerConfig } from "@/types/timer";
+import type {
+  TimerMode,
+  TimerState,
+  TimerConfig,
+  TimerSnapshot,
+} from "@/types/timer";
 import { DEFAULT_TIMER_CONFIG } from "@/types/timer";
 import type { AppPreferences } from "@/types/preferences";
 import { DEFAULT_APP_PREFERENCES } from "@/types/preferences";
@@ -61,6 +66,9 @@ export function useTimer(
   const onSessionCompleteRef = useRef(onSessionComplete);
   const onFocusElapsedRef = useRef(onFocusElapsed);
   const modeRef = useRef<TimerMode>("focus");
+  const stateRef = useRef<TimerState>("idle");
+  const remainingMsRef = useRef(remainingMs);
+  const deadlineRef = useRef<number | null>(null);
   const segmentStartedAtRef = useRef<number | null>(null);
 
   configRef.current = config;
@@ -68,6 +76,8 @@ export function useTimer(
   onSessionCompleteRef.current = onSessionComplete;
   onFocusElapsedRef.current = onFocusElapsed;
   modeRef.current = mode;
+  stateRef.current = state;
+  remainingMsRef.current = remainingMs;
 
   const totalMs = getMsForMode(mode, config);
   const minutes = Math.floor(remainingMs / 60_000);
@@ -75,6 +85,7 @@ export function useTimer(
   const progress = 1 - remainingMs / totalMs;
 
   const clearTimer = useCallback(() => {
+    deadlineRef.current = null;
     if (intervalRef.current) {
       clearInterval(intervalRef.current);
       intervalRef.current = null;
@@ -107,6 +118,33 @@ export function useTimer(
     () => {},
   );
 
+  // Callers other than the interval (the timer widget) may run this too;
+  // completing the session clears the deadline, so it completes only once.
+  const syncRemaining = useCallback(() => {
+    const deadline = deadlineRef.current;
+    if (deadline === null) return;
+
+    const newRemaining = Math.max(0, deadline - Date.now());
+    setRemainingMs(newRemaining);
+
+    if (newRemaining <= 0) {
+      handleSessionCompleteRef.current(modeRef.current);
+    }
+  }, []);
+
+  const getSnapshot = useCallback((): TimerSnapshot => {
+    const deadline = deadlineRef.current;
+    return {
+      mode: modeRef.current,
+      state: stateRef.current,
+      remainingMs:
+        deadline === null
+          ? remainingMsRef.current
+          : Math.max(0, deadline - Date.now()),
+      totalMs: getMsForMode(modeRef.current, configRef.current),
+    };
+  }, []);
+
   const beginCountdown = useCallback(
     (startRemainingMs: number) => {
       clearTimer();
@@ -116,19 +154,10 @@ export function useTimer(
         segmentStartedAtRef.current = Date.now();
       }
 
-      const startTime = Date.now();
-
-      intervalRef.current = setInterval(() => {
-        const elapsed = Date.now() - startTime;
-        const newRemaining = Math.max(0, startRemainingMs - elapsed);
-        setRemainingMs(newRemaining);
-
-        if (newRemaining <= 0) {
-          handleSessionCompleteRef.current(modeRef.current);
-        }
-      }, 100);
+      deadlineRef.current = Date.now() + startRemainingMs;
+      intervalRef.current = setInterval(syncRemaining, 100);
     },
-    [clearTimer],
+    [clearTimer, syncRemaining],
   );
 
   const handleSessionComplete = useCallback(
@@ -208,6 +237,9 @@ export function useTimer(
   }, [state, remainingMs, beginCountdown]);
 
   const pause = useCallback(() => {
+    if (deadlineRef.current !== null) {
+      setRemainingMs(Math.max(0, deadlineRef.current - Date.now()));
+    }
     endFocusSegment();
     clearTimer();
     setState("paused");
@@ -254,5 +286,7 @@ export function useTimer(
     reset,
     switchMode,
     flushFocusTime,
+    syncRemaining,
+    getSnapshot,
   };
 }

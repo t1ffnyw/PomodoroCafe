@@ -7,7 +7,7 @@ type ControlsProps = {
   state: TimerState;
   onStart: () => void;
   onPause: () => void;
-  onReset: () => void;
+  onReset?: () => void;
 };
 
 export function Controls({
@@ -34,9 +34,11 @@ export function Controls({
         </button>
       )}
 
-      <button onClick={onReset} className={`${pillClass} btn--pink`}>
-        Reset
-      </button>
+      {onReset && (
+        <button onClick={onReset} className={`${pillClass} btn--pink`}>
+          Reset
+        </button>
+      )}
     </div>
   );
 }
