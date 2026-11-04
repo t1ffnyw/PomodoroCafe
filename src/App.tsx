@@ -18,6 +18,7 @@ import { useThemeFavicon } from "@/hooks/useThemeFavicon";
 import { useChime } from "@/hooks/useChime";
 import { useAmbientSound } from "@/hooks/useAmbientSound";
 import { useTabTitle } from "@/hooks/useTabTitle";
+import { useTimerWidget } from "@/hooks/useTimerWidget";
 import { useTodos } from "@/hooks/useTodos";
 import { useStudyProgress } from "@/hooks/useStudyProgress";
 import type { SessionCompleteEvent } from "@/types/preferences";
@@ -43,8 +44,8 @@ export default function App() {
   const studyProgress = useStudyProgress();
 
   const onFocusElapsed = useCallback(
-    (elapsedMs: number) => {
-      studyProgress.recordFocusMs(elapsedMs);
+    (elapsedMs: number, endedAt: number) => {
+      studyProgress.recordFocusMs(elapsedMs, endedAt);
     },
     [studyProgress],
   );
@@ -90,6 +91,16 @@ export default function App() {
     seconds: timer.seconds,
     state: timer.state,
     mode: timer.mode,
+  });
+
+  const timerWidget = useTimerWidget({
+    themeId,
+    mode: timer.mode,
+    state: timer.state,
+    getSnapshot: timer.getSnapshot,
+    onTick: timer.syncRemaining,
+    onStart: timer.start,
+    onPause: timer.pause,
   });
 
   useEffect(() => {
@@ -153,6 +164,10 @@ export default function App() {
             onThemeChange={setTheme}
             showFocusModeButton={timer.mode === "focus"}
             onEnterFocusMode={() => setIsFocusMode(true)}
+            isTimerWidgetOpen={timerWidget.isOpen}
+            onToggleTimerWidget={
+              timerWidget.isSupported ? timerWidget.toggle : undefined
+            }
             getView={studyProgress.getView}
           />
 

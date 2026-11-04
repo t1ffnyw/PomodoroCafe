@@ -10,12 +10,13 @@ type TimerProps = {
   state: TimerState;
   progress: number;
   showLabel?: boolean;
-  size?: "default" | "large";
+  size?: "mini" | "default" | "large";
 };
 
 const TIMER_SIZES = {
-  default: { ring: 200, stroke: 16, timeClass: "text-4xl" },
-  large: { ring: 320, stroke: 22, timeClass: "text-6xl" },
+  mini: { ring: 140, stroke: 12, timeClass: "text-3xl", labelClass: "text-base" },
+  default: { ring: 200, stroke: 16, timeClass: "text-4xl", labelClass: "text-xl" },
+  large: { ring: 320, stroke: 22, timeClass: "text-6xl", labelClass: "text-xl" },
 } as const;
 
 export function Timer({
@@ -26,7 +27,12 @@ export function Timer({
   showLabel = true,
   size = "default",
 }: TimerProps) {
-  const { ring: ringSize, stroke: strokeWidth, timeClass } = TIMER_SIZES[size];
+  const {
+    ring: ringSize,
+    stroke: strokeWidth,
+    timeClass,
+    labelClass,
+  } = TIMER_SIZES[size];
   const radius = (ringSize - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
   const offset = circumference * (1 - progress);
@@ -39,9 +45,13 @@ export function Timer({
   const timeDisplay = `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
 
   return (
-    <div className="flex flex-col items-center gap-4">
+    <div
+      className={`flex flex-col items-center ${size === "mini" ? "gap-2" : "gap-4"}`}
+    >
       {showLabel && (
-        <h2 className="font-display text-xl text-cafe-text-light tracking-wide">
+        <h2
+          className={`font-display text-cafe-text-light tracking-wide ${labelClass}`}
+        >
           {modeLabel}
         </h2>
       )}

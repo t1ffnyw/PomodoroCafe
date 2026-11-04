@@ -2,6 +2,13 @@ export type TimerMode = "focus" | "break" | "longBreak";
 
 export type TimerState = "idle" | "running" | "paused";
 
+export type TimerSnapshot = {
+  mode: TimerMode;
+  state: TimerState;
+  remainingMs: number;
+  totalMs: number;
+};
+
 export type TimerConfig = {
   focusMinutes: number;
   breakMinutes: number;
