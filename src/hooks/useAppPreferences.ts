@@ -7,12 +7,13 @@ const STORAGE_KEY = "cafe-pomodoro-preferences";
 function loadPreferences(): AppPreferences {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    return raw
-      ? {
-          ...DEFAULT_APP_PREFERENCES,
-          ...(JSON.parse(raw) as Partial<AppPreferences>),
-        }
-      : DEFAULT_APP_PREFERENCES;
+    if (!raw) return DEFAULT_APP_PREFERENCES;
+    const stored = JSON.parse(raw) as Partial<AppPreferences>;
+    return {
+      ...DEFAULT_APP_PREFERENCES,
+      ...stored,
+      notion: { ...DEFAULT_APP_PREFERENCES.notion, ...stored.notion },
+    };
   } catch {
     return DEFAULT_APP_PREFERENCES;
   }

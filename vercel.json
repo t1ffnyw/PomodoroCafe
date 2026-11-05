@@ -1,0 +1,12 @@
+{
+  "rewrites": [
+    {
+      "source": "/auth/notion/:path*",
+      "destination": "https://cafe-pomodoro.pomodoro-cafe.workers.dev/auth/notion/:path*"
+    },
+    {
+      "source": "/api/notion/:path*",
+      "destination": "https://cafe-pomodoro.pomodoro-cafe.workers.dev/api/notion/:path*"
+    }
+  ]
+}

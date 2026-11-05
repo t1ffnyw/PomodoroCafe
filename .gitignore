@@ -16,6 +16,10 @@ dist-ssr/
 .env
 .env.local
 .env.*.local
+.dev.vars
+
+# Cloudflare Wrangler local state
+.wrangler/
 
 # Editor / IDE
 .vscode/

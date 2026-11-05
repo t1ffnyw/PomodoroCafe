@@ -1,0 +1,29 @@
+name = "cafe-pomodoro"
+main = "src/index.ts"
+compatibility_date = "2026-10-01"
+
+[dev]
+port = 8787
+
+# The Worker also serves the built app, so the site and the API share one origin.
+# Only /auth/* and /api/* run Worker code; everything else is a static file.
+[assets]
+directory = "../../dist"
+not_found_handling = "single-page-application"
+run_worker_first = ["/auth/*", "/api/*"]
+
+# Production values. Override locally in .dev.vars (see .dev.vars.example).
+[vars]
+APP_ORIGIN = "https://pomodoro-cafe-one.vercel.app"
+NOTION_REDIRECT_URI = "https://pomodoro-cafe-one.vercel.app/auth/notion/callback"
+
+# Create with: npx wrangler kv namespace create NOTION_SESSIONS
+# then paste the returned id below. Local `wrangler dev` uses a simulated store.
+[[kv_namespaces]]
+binding = "NOTION_SESSIONS"
+id = "e9ca81b0da5b4b8f8bd7931ca35f8dcd"
+
+# Secrets (set with `npx wrangler secret put <NAME>`, never committed):
+#   NOTION_CLIENT_ID
+#   NOTION_CLIENT_SECRET
+#   SESSION_SIGNING_SECRET
