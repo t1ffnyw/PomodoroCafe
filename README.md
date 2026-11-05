@@ -158,6 +158,14 @@ npm run deploy
 
 After that, `npm run deploy` is the only command needed to ship updates. It builds the app and uploads it together with the Worker.
 
+### Hosting the app on Vercel instead
+
+The live site is served by Vercel at `https://pomodoro-cafe-one.vercel.app`, with the Worker still on Cloudflare. `vercel.json` rewrites `/auth/notion/*` and `/api/notion/*` to the Worker, so the browser only ever talks to the Vercel domain and the session cookie stays first-party.
+
+- `APP_ORIGIN` is `https://pomodoro-cafe-one.vercel.app`, and `NOTION_REDIRECT_URI` (plus the redirect URI registered in Notion) is `https://pomodoro-cafe-one.vercel.app/auth/notion/callback`
+- The site deploys through Vercel as usual; deploy the Worker with `cd workers/notion-api` then `npx wrangler deploy` whenever its code or `wrangler.toml` changes
+- If the Worker URL changes, update both destinations in `vercel.json`
+
 ### Worker API
 
 | Route | Purpose |
