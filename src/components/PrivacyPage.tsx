@@ -1,7 +1,7 @@
 // Static privacy policy, served at /privacy.
-// Replace CONTACT_EMAIL before launch, and have the text reviewed (it is a template, not legal advice).
+// The text is a template, not legal advice; have it reviewed.
 
-const CONTACT_EMAIL = "[your contact email]";
+const CONTACT_EMAIL = "tiffany.tong.wei@gmail.com";
 const LAST_UPDATED = "November 6, 2026";
 
 export function PrivacyPage() {
