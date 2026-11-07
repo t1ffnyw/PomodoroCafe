@@ -53,7 +53,7 @@ function signingKey(env: Env): Promise<CryptoKey> {
   );
 }
 
-async function signSessionId(env: Env, id: string): Promise<string> {
+export async function signSessionId(env: Env, id: string): Promise<string> {
   const signature = await crypto.subtle.sign(
     "HMAC",
     await signingKey(env),
@@ -62,7 +62,7 @@ async function signSessionId(env: Env, id: string): Promise<string> {
   return `${id}.${toBase64Url(signature)}`;
 }
 
-async function verifySessionCookie(env: Env, value: string): Promise<string | null> {
+export async function verifySessionCookie(env: Env, value: string): Promise<string | null> {
   const [id, signature] = value.split(".");
   if (!id || !signature) return null;
   const signatureBytes = fromBase64Url(signature);
@@ -89,7 +89,7 @@ export async function createSession(
     createdAt,
     expiresAt: createdAt + SESSION_TTL_SECONDS * 1000,
   };
-  await env.NOTION_SESSIONS.put(sessionKey(id), JSON.stringify(session), {
+  await env.SESSIONS.put(sessionKey(id), JSON.stringify(session), {
     expirationTtl: SESSION_TTL_SECONDS,
   });
   return serializeCookie(request, SESSION_COOKIE, await signSessionId(env, id), {
@@ -102,7 +102,7 @@ export async function getSession(request: Request, env: Env): Promise<Session | 
   if (!cookie) return null;
   const id = await verifySessionCookie(env, cookie);
   if (!id) return null;
-  const data = await env.NOTION_SESSIONS.get<SessionData>(sessionKey(id), "json");
+  const data = await env.SESSIONS.get<SessionData>(sessionKey(id), "json");
   return data ? { id, data } : null;
 }
 
@@ -113,7 +113,7 @@ export async function requireSession(request: Request, env: Env): Promise<Sessio
 }
 
 export function deleteSession(env: Env, id: string): Promise<void> {
-  return env.NOTION_SESSIONS.delete(sessionKey(id));
+  return env.SESSIONS.delete(sessionKey(id));
 }
 
 export function clearSessionCookie(request: Request): string {

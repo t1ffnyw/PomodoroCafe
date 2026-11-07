@@ -31,7 +31,7 @@ function appRedirect(env: Env, status: "connected" | "error", reason?: string): 
 
 export async function startOAuth(request: Request, env: Env): Promise<Response> {
   const state = randomToken();
-  await env.NOTION_SESSIONS.put(stateKey(state), "1", {
+  await env.SESSIONS.put(stateKey(state), "1", {
     expirationTtl: STATE_TTL_SECONDS,
   });
 
@@ -84,11 +84,11 @@ export async function handleOAuthCallback(request: Request, env: Env): Promise<R
   const code = url.searchParams.get("code");
   const state = url.searchParams.get("state");
   const cookieState = parseCookies(request).get(STATE_COOKIE);
-  const stateIssued = state ? await env.NOTION_SESSIONS.get(stateKey(state)) : null;
+  const stateIssued = state ? await env.SESSIONS.get(stateKey(state)) : null;
   if (!code || !state || state !== cookieState || !stateIssued) {
     return redirect(appRedirect(env, "error", "invalid_state"), [clearState]);
   }
-  await env.NOTION_SESSIONS.delete(stateKey(state));
+  await env.SESSIONS.delete(stateKey(state));
 
   let token: NotionTokenResponse;
   try {

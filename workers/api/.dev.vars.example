@@ -8,3 +8,9 @@ SESSION_SIGNING_SECRET=replace-with-a-long-random-string
 # The Vite dev server, which proxies /auth/notion and /api/notion to this Worker.
 APP_ORIGIN=http://localhost:5173
 NOTION_REDIRECT_URI=http://localhost:8787/auth/notion/callback
+
+# Google sign-in (console.cloud.google.com -> Credentials -> OAuth client ID).
+# The redirect URI must be registered there exactly as written below.
+GOOGLE_CLIENT_ID=your-google-client-id.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=your-google-client-secret
+GOOGLE_REDIRECT_URI=http://localhost:5173/auth/login/google/callback
