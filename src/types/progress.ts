@@ -6,6 +6,8 @@ export type DayProgress = {
   completedSessions: number;
   hourlyMinutes: number[]; // 24 entries, 0..23
   hourlyCompletions: number[]; // 24 entries, 0..23
+  /** Last change (epoch ms); used to merge with the server. */
+  updatedAt?: number;
 };
 
 export type ProgressStore = {

@@ -94,7 +94,7 @@ npm run deploy   # Build and deploy the app + Worker to Cloudflare
 
 ## Notion integration setup
 
-The app talks to Notion through a small Cloudflare Worker in `workers/notion-api`. The Worker runs the OAuth sign-in, keeps each user's Notion token in Cloudflare KV, and proxies Notion API calls. The browser only ever holds an HttpOnly session cookie; the Notion client secret and access tokens never reach the React bundle.
+The app talks to Notion through a small Cloudflare Worker in `workers/api`. The Worker runs the OAuth sign-in, keeps each user's Notion token in Cloudflare KV, and proxies Notion API calls. The browser only ever holds an HttpOnly session cookie; the Notion client secret and access tokens never reach the React bundle.
 
 In production the same Worker also serves the built app, so the site and the API share one URL. The session cookie is first-party and works in every browser, with no CORS setup. Only `/auth/*` and `/api/*` run Worker code; everything else is served as static files from `dist/`.
 
@@ -114,7 +114,7 @@ When someone connects, Notion's consent screen asks which pages to share. They m
 ### 2. Run locally
 
 ```bash
-cd workers/notion-api
+cd workers/api
 npm install
 cp .dev.vars.example .dev.vars   # then fill in the client ID, secret, and a random signing secret
 cd ../..
@@ -131,14 +131,14 @@ Open `http://localhost:5173`, click the Notion button, and choose **Connect Noti
 One-time setup:
 
 ```bash
-cd workers/notion-api
+cd workers/api
 npx wrangler login
-npx wrangler kv namespace create NOTION_SESSIONS   # paste the returned id into wrangler.toml
+npx wrangler kv namespace create SESSIONS   # paste the returned id into wrangler.toml
 cd ../..
 npm run deploy                                     # prints your URL, e.g. https://cafe-pomodoro.<you>.workers.dev
 ```
 
-Then point the Worker at that URL. In `workers/notion-api/wrangler.toml`, set the `[vars]`:
+Then point the Worker at that URL. In `workers/api/wrangler.toml`, set the `[vars]`:
 
 | Variable | Value |
 |----------|-------|
@@ -148,7 +148,7 @@ Then point the Worker at that URL. In `workers/notion-api/wrangler.toml`, set th
 Add the secrets (each command prompts for the value) and deploy again:
 
 ```bash
-cd workers/notion-api
+cd workers/api
 npx wrangler secret put NOTION_CLIENT_ID
 npx wrangler secret put NOTION_CLIENT_SECRET
 npx wrangler secret put SESSION_SIGNING_SECRET     # a new long random string, not the local one
@@ -163,7 +163,7 @@ After that, `npm run deploy` is the only command needed to ship updates. It buil
 The live site is served by Vercel at `https://pomodoro-cafe-one.vercel.app`, with the Worker still on Cloudflare. `vercel.json` rewrites `/auth/notion/*` and `/api/notion/*` to the Worker, so the browser only ever talks to the Vercel domain and the session cookie stays first-party.
 
 - `APP_ORIGIN` is `https://pomodoro-cafe-one.vercel.app`, and `NOTION_REDIRECT_URI` (plus the redirect URI registered in Notion) is `https://pomodoro-cafe-one.vercel.app/auth/notion/callback`
-- The site deploys through Vercel as usual; deploy the Worker with `cd workers/notion-api` then `npx wrangler deploy` whenever its code or `wrangler.toml` changes
+- The site deploys through Vercel as usual; deploy the Worker with `cd workers/api` then `npx wrangler deploy` whenever its code or `wrangler.toml` changes
 - If the Worker URL changes, update both destinations in `vercel.json`
 
 ### Worker API
@@ -189,7 +189,7 @@ The live site is served by Vercel at `https://pomodoro-cafe-one.vercel.app`, wit
 | Styling | Tailwind CSS v4 |
 | Animation | Framer Motion |
 | Persistence | `localStorage` (timer config, preferences, theme, todos, study progress) |
-| Notion API | Cloudflare Worker + KV (`workers/notion-api`) |
+| Notion + account API | Cloudflare Worker + KV (`workers/api`) |
 
 ## Project structure
 
@@ -245,7 +245,7 @@ src/
     todo.ts               Todo type
     progress.ts           Study progress metrics and chart types
 
-workers/notion-api/       Cloudflare Worker: serves the app, Notion OAuth, sessions (KV), API proxy
+workers/api/       Cloudflare Worker: serves the app, Notion OAuth, sessions (KV), API proxy
   src/index.ts            Router, origin check, error handling
   src/oauth.ts            Connect / callback / logout / me
   src/session.ts          Signed session cookie + KV storage

@@ -1,12 +1,16 @@
 {
   "rewrites": [
     {
-      "source": "/auth/notion/:path*",
-      "destination": "https://cafe-pomodoro.pomodoro-cafe.workers.dev/auth/notion/:path*"
+      "source": "/privacy",
+      "destination": "/index.html"
     },
     {
-      "source": "/api/notion/:path*",
-      "destination": "https://cafe-pomodoro.pomodoro-cafe.workers.dev/api/notion/:path*"
+      "source": "/auth/:path*",
+      "destination": "https://cafe-pomodoro.pomodoro-cafe.workers.dev/auth/:path*"
+    },
+    {
+      "source": "/api/:path*",
+      "destination": "https://cafe-pomodoro.pomodoro-cafe.workers.dev/api/:path*"
     }
   ]
 }

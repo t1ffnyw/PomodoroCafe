@@ -14,8 +14,8 @@ export default defineConfig({
   },
   server: {
     proxy: {
-      "/auth/notion": NOTION_API_DEV_TARGET,
-      "/api/notion": NOTION_API_DEV_TARGET,
+      "/auth": NOTION_API_DEV_TARGET,
+      "/api": NOTION_API_DEV_TARGET,
     },
   },
 });

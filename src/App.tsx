@@ -9,6 +9,7 @@ import { CycleTracker } from "@/components/CycleTracker";
 import { ModeSelector } from "@/components/ModeSelector";
 import { TodoList } from "@/components/TodoList";
 import { NotionButton } from "@/components/NotionButton";
+import { AccountButton, PrivacyLink } from "@/components/AccountButton";
 import { FocusModeOverlay } from "@/components/FocusModeOverlay";
 import { SessionCelebration } from "@/components/SessionCelebration";
 import { useTimer } from "@/hooks/useTimer";
@@ -24,6 +25,8 @@ import { useTodos } from "@/hooks/useTodos";
 import { useNotionConnection } from "@/hooks/useNotionConnection";
 import { useNotionSync } from "@/hooks/useNotionSync";
 import { useStudyProgress } from "@/hooks/useStudyProgress";
+import { useAuth } from "@/hooks/useAuth";
+import { useAccountSync } from "@/hooks/useAccountSync";
 import type { SessionCompleteEvent } from "@/types/preferences";
 import type { AppPreferences } from "@/types/preferences";
 import type { TimerConfig } from "@/types/timer";
@@ -72,6 +75,8 @@ export default function App() {
   });
   const {
     todos,
+    allTodos,
+    replaceAllTodos,
     addTodo,
     toggleTodo,
     deleteTodo,
@@ -79,6 +84,26 @@ export default function App() {
     addNotionTasks,
     reorderTodos,
   } = useTodos();
+
+  const auth = useAuth();
+  const accountSyncStatus = useAccountSync({
+    signedIn: auth.state.status === "signedIn",
+    todos: { all: allTodos, replaceAll: replaceAllTodos },
+    settings: {
+      timerConfig,
+      preferences,
+      themeId,
+      apply: (values) => {
+        updateConfig(values.timerConfig);
+        updatePreferences(values.preferences);
+        setTheme(values.themeId);
+      },
+    },
+    progress: {
+      days: studyProgress.store.days,
+      replaceDays: studyProgress.replaceDays,
+    },
+  });
 
   const notion = useNotionConnection();
   const { syncState, sync } = useNotionSync(
@@ -151,6 +176,9 @@ export default function App() {
 
   return (
     <CafeScene scene={theme.scene} themeId={themeId}>
+      <AccountButton auth={auth} syncStatus={accountSyncStatus} />
+      <PrivacyLink />
+
       <AnimatePresence>
         {celebration && (
           <SessionCelebration

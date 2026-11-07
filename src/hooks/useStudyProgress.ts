@@ -36,6 +36,10 @@ function normalizeDay(day?: Partial<DayProgress>): DayProgress {
       Array.isArray(day.hourlyCompletions) && day.hourlyCompletions.length === 24
         ? [...day.hourlyCompletions]
         : empty.hourlyCompletions,
+    updatedAt:
+      typeof day.updatedAt === "number" && Number.isFinite(day.updatedAt)
+        ? day.updatedAt
+        : undefined,
   };
 }
 
@@ -112,6 +116,7 @@ export function addFocusTime(
       ...currentDay,
       focusMinutes: currentDay.focusMinutes + minutes,
       hourlyMinutes: updatedHourlyMinutes,
+      updatedAt: Date.now(),
     };
     sliceStart = sliceEnd;
   }
@@ -149,6 +154,7 @@ export function useStudyProgress() {
         ...currentDay,
         completedSessions: currentDay.completedSessions + 1,
         hourlyCompletions: updatedHourlyCompletions,
+        updatedAt: Date.now(),
       };
 
       return {
@@ -283,8 +289,14 @@ export function useStudyProgress() {
     [store],
   );
 
+  /** Replaces all days at once (used when merging with the server). */
+  const replaceDays = useCallback((days: Record<string, DayProgress>) => {
+    setStore((prev) => ({ ...prev, days }));
+  }, []);
+
   return {
     store,
+    replaceDays,
     recordFocusMs,
     recordCompletedSession,
     getView,

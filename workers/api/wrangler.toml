@@ -16,14 +16,25 @@ run_worker_first = ["/auth/*", "/api/*"]
 [vars]
 APP_ORIGIN = "https://pomodoro-cafe-one.vercel.app"
 NOTION_REDIRECT_URI = "https://pomodoro-cafe-one.vercel.app/auth/notion/callback"
+GOOGLE_REDIRECT_URI = "https://pomodoro-cafe-one.vercel.app/auth/login/google/callback"
 
-# Create with: npx wrangler kv namespace create NOTION_SESSIONS
+# User data (accounts, todos, settings, progress).
+# Create with: npx wrangler d1 create cafe-pomodoro-db
+[[d1_databases]]
+binding = "DB"
+database_name = "cafe-pomodoro-db"
+database_id = "dc96df60-3577-481c-b7ed-29bcf0123884"
+migrations_dir = "migrations"
+
+# Create with: npx wrangler kv namespace create SESSIONS
 # then paste the returned id below. Local `wrangler dev` uses a simulated store.
 [[kv_namespaces]]
-binding = "NOTION_SESSIONS"
+binding = "SESSIONS"
 id = "e9ca81b0da5b4b8f8bd7931ca35f8dcd"
 
 # Secrets (set with `npx wrangler secret put <NAME>`, never committed):
 #   NOTION_CLIENT_ID
 #   NOTION_CLIENT_SECRET
 #   SESSION_SIGNING_SECRET
+#   GOOGLE_CLIENT_ID
+#   GOOGLE_CLIENT_SECRET
