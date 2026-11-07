@@ -103,6 +103,11 @@ export async function putProgress(
   await request("/api/progress", jsonInit("PUT", { days }));
 }
 
+/** Reloads the app (a separate function so tests can replace it). */
+export function reloadPage(): void {
+  window.location.reload();
+}
+
 /** Local data is a cache of the account's data; wipe it when leaving the account. */
 export function clearLocalData(): void {
   try {

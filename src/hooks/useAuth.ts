@@ -3,6 +3,7 @@ import {
   clearLocalData,
   deleteAccount as apiDeleteAccount,
   getMe,
+  reloadPage,
   signIn,
   signOut,
   type AccountUser,
@@ -50,13 +51,13 @@ export function useAuth() {
   const logout = useCallback(async () => {
     await signOut();
     clearLocalData();
-    window.location.reload();
+    reloadPage();
   }, []);
 
   const deleteAccount = useCallback(async () => {
     await apiDeleteAccount();
     clearLocalData();
-    window.location.reload();
+    reloadPage();
   }, []);
 
   return {
